@@ -35,7 +35,6 @@ func (cfg OAuthConfig) GetAuthURL(state string) string {
 	params.Set("state", state)
 	params.Set("redirect_uri", cfg.RedirectURI)
 
-	// todo: replace to build url with net/url
 	return fmt.Sprintf("%s?%s", AuthURL, params.Encode())
 }
 

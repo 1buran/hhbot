@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/apiendpoint"
+	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/dto"
 )
 
 const (
@@ -36,8 +37,8 @@ func (ac ApiClient) CreateRequest(method, endpointUrl string, body io.Reader) (*
 }
 
 // Search for vacancies.
-func (ac ApiClient) SearchVacancies(text string, salary int) ([]VacancyDTO, error) {
-	var data ResponseItemsDTO[VacancyDTO]
+func (ac ApiClient) SearchVacancies(text string, salary int) ([]dto.Vacancy, error) {
+	var data dto.ResponseItems[dto.Vacancy]
 	vacanciesEndpoint := apiendpoint.NewGetVacancies(text, salary)
 	return ExtractItems(ac, vacanciesEndpoint, data)
 }
