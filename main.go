@@ -1,12 +1,12 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"strings"
+
+	_ "github.com/joho/godotenv/autoload"
 
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/auth"
@@ -25,9 +25,6 @@ var (
 )
 
 func main() {
-	// Load credentials from .env file
-	loadEnv()
-
 	clientID := os.Getenv("HH_CLIENT_ID")
 	clientSecret := os.Getenv("HH_CLIENT_SECRET")
 
@@ -64,29 +61,6 @@ func main() {
 	}
 	for i, v := range vacancies {
 		fmt.Printf("%d %+v\n", i, v)
-	}
-}
-
-func loadEnv() {
-	file, err := os.Open(".env")
-	if err != nil {
-		return // .env file is optional
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" || strings.HasPrefix(line, "#") {
-			continue
-		}
-
-		parts := strings.SplitN(line, "=", 2)
-		if len(parts) == 2 {
-			key := strings.TrimSpace(parts[0])
-			value := strings.TrimSpace(parts[1])
-			os.Setenv(key, value)
-		}
 	}
 }
 
