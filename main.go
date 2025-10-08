@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient"
+	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/auth"
 )
 
 const (
@@ -19,7 +20,7 @@ const (
 var (
 	authCodeChan  = make(chan string)
 	authStateChan = make(chan string)
-	oauthConfig   *apiclient.OAuthConfig
+	oauthConfig   *auth.OAuthConfig
 	expectedState string
 )
 
@@ -34,7 +35,7 @@ func main() {
 		log.Fatal("Please set HH_CLIENT_ID and HH_CLIENT_SECRET in .env file")
 	}
 
-	oauthConfig = &apiclient.OAuthConfig{
+	oauthConfig = &auth.OAuthConfig{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		RedirectURI:  redirectURI,
@@ -91,7 +92,7 @@ func loadEnv() {
 
 func authenticate() (string, error) {
 	// Generate state for CSRF protection
-	state, err := apiclient.GenerateState()
+	state, err := auth.GenerateState()
 	if err != nil {
 		return "", fmt.Errorf("failed to generate state: %w", err)
 	}

@@ -1,9 +1,6 @@
 package apiclient
 
 import (
-	"crypto/rand"
-	"encoding/base64"
-
 	"encoding/json"
 
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/apiendpoint"
@@ -32,13 +29,4 @@ func ExtractItems[T dto.ResponseType](
 		return nil, err
 	}
 	return data.Items, nil
-}
-
-// GenerateState creates a random state string for CSRF protection
-func GenerateState() (string, error) {
-	b := make([]byte, 32)
-	if _, err := rand.Read(b); err != nil {
-		return "", err
-	}
-	return base64.URLEncoding.EncodeToString(b), nil
 }
