@@ -1,6 +1,6 @@
 package repository
 
-import "github.com/1buran/hhbot/internal/domain/entity"
+import "gitlab.com/1buran/hhbot/internal/domain/entity"
 
 type Entities interface {
 	GetID() string

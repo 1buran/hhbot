@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/1buran/hhbot/internal/infrastructure/apiclient"
+	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient"
 )
 
 const (

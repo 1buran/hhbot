@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/1buran/hhbot/internal/infrastructure/apiclient/apiendpoint"
+	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/apiendpoint"
 )
 
 const (

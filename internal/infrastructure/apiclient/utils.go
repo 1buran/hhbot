@@ -6,7 +6,7 @@ import (
 
 	"encoding/json"
 
-	"github.com/1buran/hhbot/internal/infrastructure/apiclient/apiendpoint"
+	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/apiendpoint"
 )
 
 // Generic extraction of items from response with items included.
