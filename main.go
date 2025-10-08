@@ -19,13 +19,13 @@ func main() {
 		log.Fatal("Please set HH_CLIENT_ID and HH_CLIENT_SECRET in .env file")
 	}
 
-	oauthConfig := auth.NewOAuthConfig(clientID, clientSecret)
+	oauthClient := auth.NewOAuthClient(clientID, clientSecret)
 
 	// Start OAuth flow
 	fmt.Println("=== HH.ru Vacancy Search Bot ===")
 	fmt.Println("Starting OAuth authentication...")
 
-	accessToken, err := oauthConfig.Authenticate()
+	accessToken, err := oauthClient.Authenticate()
 	if err != nil {
 		log.Fatal("Authentication failed:", err)
 	}

@@ -25,7 +25,7 @@ type TokenResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-type OAuthConfig struct {
+type OAuthClient struct {
 	ClientID     string
 	ClientSecret string
 	RedirectURI  string
@@ -36,7 +36,7 @@ type OAuthConfig struct {
 }
 
 // GetAuthURL returns the authorization URL with state parameter
-func (cfg OAuthConfig) GetAuthURL(state string) string {
+func (cfg OAuthClient) GetAuthURL(state string) string {
 	params := url.Values{}
 	params.Set("response_type", "code")
 	params.Set("client_id", cfg.ClientID)
@@ -47,7 +47,7 @@ func (cfg OAuthConfig) GetAuthURL(state string) string {
 }
 
 // ExchangeCode exchanges authorization code for access token
-func (cfg *OAuthConfig) ExchangeCode(code, state string) (*TokenResponse, error) {
+func (cfg *OAuthClient) ExchangeCode(code, state string) (*TokenResponse, error) {
 	data := url.Values{}
 	data.Set("grant_type", "authorization_code")
 	data.Set("client_id", cfg.ClientID)
@@ -85,7 +85,7 @@ func (cfg *OAuthConfig) ExchangeCode(code, state string) (*TokenResponse, error)
 	return &token, nil
 }
 
-func (cfg *OAuthConfig) callbackHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *OAuthClient) callbackHandler(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
 
@@ -112,7 +112,7 @@ func (cfg *OAuthConfig) callbackHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 // Start callback server: it listen on port 8080 and handle only one route /callback.
-func (cfg *OAuthConfig) StartListeningCallback() {
+func (cfg *OAuthClient) StartListeningCallback() {
 	http.HandleFunc("/callback", cfg.callbackHandler)
 
 	cfg.callbackServer = &http.Server{Addr: callbackServerAddress}
@@ -125,14 +125,14 @@ func (cfg *OAuthConfig) StartListeningCallback() {
 }
 
 // Stop callback server.
-func (cfg *OAuthConfig) StopListeningCallback() {
+func (cfg *OAuthClient) StopListeningCallback() {
 	if err := cfg.callbackServer.Close(); err != nil {
 		fmt.Println(err)
 	}
 }
 
 // Authentification progress.
-func (cfg *OAuthConfig) Authenticate() (string, error) {
+func (cfg *OAuthClient) Authenticate() (string, error) {
 	// Generate state for CSRF protection
 	state, err := GenerateState()
 	if err != nil {
@@ -167,8 +167,8 @@ func (cfg *OAuthConfig) Authenticate() (string, error) {
 	return token.AccessToken, nil
 }
 
-func NewOAuthConfig(clientId, clientSecret string) *OAuthConfig {
-	return &OAuthConfig{
+func NewOAuthClient(clientId, clientSecret string) *OAuthClient {
+	return &OAuthClient{
 		ClientID:      clientId,
 		ClientSecret:  clientSecret,
 		RedirectURI:   redirectURI,
