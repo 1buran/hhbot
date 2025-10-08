@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -12,6 +13,9 @@ import (
 const (
 	AuthURL  = "https://hh.ru/oauth/authorize"
 	TokenURL = "https://hh.ru/oauth/token"
+
+	redirectURI           = "http://localhost:8080/callback"
+	callbackServerAddress = "localhost:8080"
 )
 
 type TokenResponse struct {
@@ -25,6 +29,10 @@ type OAuthConfig struct {
 	ClientID     string
 	ClientSecret string
 	RedirectURI  string
+
+	callbackServer *http.Server
+	authCodeChan   chan string
+	authStateChan  chan string
 }
 
 // GetAuthURL returns the authorization URL with state parameter
@@ -75,4 +83,96 @@ func (cfg *OAuthConfig) ExchangeCode(code, state string) (*TokenResponse, error)
 	}
 
 	return &token, nil
+}
+
+func (cfg *OAuthConfig) callbackHandler(w http.ResponseWriter, r *http.Request) {
+	code := r.URL.Query().Get("code")
+	state := r.URL.Query().Get("state")
+
+	if code == "" {
+		http.Error(w, "No authorization code received", http.StatusBadRequest)
+		return
+	}
+
+	if state == "" {
+		http.Error(w, "No state parameter received", http.StatusBadRequest)
+		return
+	}
+
+	fmt.Fprintf(w, `<html>
+<head><title>Authorization Successful</title></head>
+<body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+	<h1 style="color: #4CAF50;">✓ Authorization successful!</h1>
+	<p>You can close this window and return to the terminal.</p>
+</body>
+</html>`)
+
+	cfg.authCodeChan <- code
+	cfg.authStateChan <- state
+}
+
+// Start callback server: it listen on port 8080 and handle only one route /callback.
+func (cfg *OAuthConfig) StartListeningCallback() {
+	http.HandleFunc("/callback", cfg.callbackHandler)
+
+	cfg.callbackServer = &http.Server{Addr: callbackServerAddress}
+	go func() {
+		fmt.Println("Starting local server on", cfg.callbackServer.Addr)
+		if err := cfg.callbackServer.ListenAndServe(); err != http.ErrServerClosed {
+			log.Fatal("Server error:", err)
+		}
+	}()
+}
+
+// Stop callback server.
+func (cfg *OAuthConfig) StopListeningCallback() {
+	if err := cfg.callbackServer.Close(); err != nil {
+		fmt.Println(err)
+	}
+}
+
+// Authentification progress.
+func (cfg *OAuthConfig) Authenticate() (string, error) {
+	// Generate state for CSRF protection
+	state, err := GenerateState()
+	if err != nil {
+		return "", fmt.Errorf("failed to generate state: %w", err)
+	}
+	expectedState := state
+
+	cfg.StartListeningCallback()
+	defer cfg.StopListeningCallback()
+
+	// Get authorization URL with state
+	authURL := cfg.GetAuthURL(state)
+
+	fmt.Printf("\nPlease visit this URL to authorize the application:\n\n%s\n\n", authURL)
+	fmt.Println("Waiting for authorization...")
+
+	// Wait for authorization code and state
+	code := <-cfg.authCodeChan
+	receivedState := <-cfg.authStateChan
+
+	// Verify state to prevent CSRF attacks
+	if receivedState != expectedState {
+		return "", fmt.Errorf("state mismatch: possible CSRF attack")
+	}
+
+	// Exchange code for token
+	token, err := cfg.ExchangeCode(code, state)
+	if err != nil {
+		return "", err
+	}
+
+	return token.AccessToken, nil
+}
+
+func NewOAuthConfig(clientId, clientSecret string) *OAuthConfig {
+	return &OAuthConfig{
+		ClientID:      clientId,
+		ClientSecret:  clientSecret,
+		RedirectURI:   redirectURI,
+		authCodeChan:  make(chan string),
+		authStateChan: make(chan string),
+	}
 }
