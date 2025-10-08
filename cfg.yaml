@@ -1,0 +1,11 @@
+package: client
+output: client.gen.go
+output-options:
+  include-operation-ids:
+    - get-vacancies
+    - get-vacancy
+    - apply-to-vacancy
+generate:
+  models: true
+  client: true
+  server-urls: true
