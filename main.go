@@ -10,56 +10,7 @@ import (
 
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/auth"
-	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/dto"
 )
-
-type model struct {
-	vacancies []dto.Vacancy // load vacancies from hh.ru
-	cursor    int           // active vacancy
-	hhdict    dto.Dictionary
-}
-
-func (m model) Init() tea.Cmd {
-	// Just return `nil`, which means "no I/O right now, please."
-	return nil
-}
-
-func (m model) View() string {
-	return renderVacancy(m.cursor, m.vacancies[m.cursor], m.hhdict)
-}
-
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		// These keys should exit the program.
-		case "ctrl+c", "q":
-			return m, tea.Quit
-
-		// The "up" and "k" keys move the cursor up
-		case "up", "k":
-			if m.cursor > 0 {
-				m.cursor--
-			}
-
-		// The "down" and "j" keys move the cursor down
-		case "down", "j":
-			if m.cursor < len(m.vacancies)-1 {
-				m.cursor++
-			}
-
-		// Enter to vacancy
-		case "enter", " ":
-			// todo load vacancy and show it in alternate view
-		}
-
-	}
-	return m, nil
-}
-
-func initialModel(vacancies []dto.Vacancy, dict dto.Dictionary) model {
-	return model{vacancies: vacancies, hhdict: dict}
-}
 
 func main() {
 	clientID := os.Getenv("HH_CLIENT_ID")
@@ -107,7 +58,7 @@ func main() {
 	// 	fmt.Print(renderVacancy(i, v, dict))
 	// }
 
-	p := tea.NewProgram(initialModel(vacancies, dict))
+	p := tea.NewProgram(initialModel(client, vacancies, dict))
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)

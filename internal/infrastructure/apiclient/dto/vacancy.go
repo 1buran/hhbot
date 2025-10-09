@@ -29,20 +29,25 @@ func (s Salary) String() string {
 type Counters struct{ Responses, Total_responses int }
 
 type Snippet struct{ Requirement, Responsibility string }
+type Skill struct{ Name string }
 
 type Vacancy struct {
 	Id                  string
 	Name                string
+	Code                string
+	Description         string
 	Alternate_url       string
 	Apply_alternate_url string
 	Response_url        string
 	Url                 string
 
-	Relations []string // favorited, got_response, got_invitation, got_rejection, blacklisted
+	Relations  []string // favorited, got_response, got_invitation, got_rejection, blacklisted
+	Key_skills []Skill
 
 	// Do not forget enable json v2 for get new features like time format: GOEXPERIMENT=jsonv2
-	Created_at   time.Time `json:",format:'2006-01-02T15:04:05-0700'"`
-	Published_at time.Time `json:",format:'2006-01-02T15:04:05-0700'"`
+	Created_at         time.Time `json:",format:'2006-01-02T15:04:05-0700'"`
+	Published_at       time.Time `json:",format:'2006-01-02T15:04:05-0700'"`
+	Initial_created_at time.Time `json:",format:'2006-01-02T15:04:05-0700'"`
 
 	Employer Employer
 
@@ -63,4 +68,10 @@ type Vacancy struct {
 
 	Premium  bool
 	Archived bool
+	Approved bool
+
+	Show_contacts            bool
+	Allow_messages           bool
+	Closed_for_applicants    bool
+	Response_letter_required bool
 }

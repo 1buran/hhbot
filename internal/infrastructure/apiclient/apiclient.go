@@ -56,6 +56,13 @@ func (ac ApiClient) Apply(vacancyID, resumeID, message string) (*dto.Response, e
 	return Post(ac, applyendpoint)
 }
 
+// Get vacancy.
+func (ac ApiClient) GetVacancy(vacancyID string) (vac dto.Vacancy, err error) {
+	getvacancyendpoint := apiendpoint.NewGetVacancy(vacancyID)
+	err = Get(ac, getvacancyendpoint, &vac)
+	return
+}
+
 // New Api Client.
 func NewApiClient(accessToken string) *ApiClient {
 	return &ApiClient{
