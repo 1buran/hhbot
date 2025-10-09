@@ -36,7 +36,7 @@ func ExtractItems[T dto.ResponseType](
 		items = append(items, data.Items...)
 		totalPages = data.Pages
 
-		if data.Page == totalPages {
+		if data.Page == totalPages-1 { // page numbers started from 0
 			break
 		} else {
 			endpoint.SetPage(data.Page + 1)
