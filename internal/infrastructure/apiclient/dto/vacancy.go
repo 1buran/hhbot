@@ -2,6 +2,7 @@ package dto
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -12,14 +13,17 @@ type Salary struct {
 }
 
 func (s Salary) String() string {
-	var from, to any = "-", "-"
+	var out []string
 	if s.From > 0 {
-		from = s.From
+		out = append(out, fmt.Sprintf("от %d", s.From))
 	}
 	if s.To > 0 {
-		from = s.To
+		out = append(out, fmt.Sprintf("до %d", s.To))
 	}
-	return fmt.Sprintf("от: %v, до: %v %s", from, to, s.Currency)
+	if len(out) > 0 {
+		out = append(out, s.Currency)
+	}
+	return strings.Join(out, " ")
 }
 
 type Counters struct{ Responses, Total_responses int }

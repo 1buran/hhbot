@@ -6,6 +6,8 @@
 // the main package file (this file) contains only high level structures: response types.
 package dto
 
+import "net/http"
+
 type ResponseType interface {
 	Vacancy | Dictionary
 }
@@ -13,4 +15,10 @@ type ResponseType interface {
 type ResponseItems[T ResponseType] struct {
 	Found, Per_page, Pages, Page int
 	Items                        []T
+}
+
+type Response struct {
+	Code    int
+	Status  string
+	Headers http.Header
 }

@@ -50,6 +50,12 @@ func (ac ApiClient) GetDictionary() (dict dto.Dictionary, err error) {
 	return
 }
 
+// Apply to vacancy.
+func (ac ApiClient) Apply(vacancyID, resumeID, message string) (*dto.Response, error) {
+	applyendpoint := apiendpoint.NewPostNegotinations(vacancyID, resumeID, message)
+	return Post(ac, applyendpoint)
+}
+
 // New Api Client.
 func NewApiClient(accessToken string) *ApiClient {
 	return &ApiClient{

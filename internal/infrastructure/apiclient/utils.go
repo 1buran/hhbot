@@ -45,7 +45,7 @@ func ExtractItems[T dto.ResponseType](
 	return items, nil
 }
 
-// Generic Get request.
+// Generic GET request.
 func Get[T dto.ResponseType](
 	ac ApiClient,
 	endpoint apiendpoint.ApiEndpoint,
@@ -68,4 +68,25 @@ func Get[T dto.ResponseType](
 	}
 
 	return nil
+}
+
+// Generic POST request.
+func Post(
+	ac ApiClient,
+	endpoint apiendpoint.ApiEndpoint,
+) (*dto.Response, error) {
+	req, err := ac.CreateRequest("POST", endpoint.Url(), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.URL.RawQuery = endpoint.Payload().Encode()
+
+	res, err := ac.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	return &dto.Response{Code: res.StatusCode, Status: res.Status, Headers: res.Header}, nil
 }
