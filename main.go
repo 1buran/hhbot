@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
+	"time"
 
 	_ "github.com/joho/godotenv/autoload"
 
@@ -42,7 +44,20 @@ func main() {
 		fmt.Println("client.SearchVacancies failure:", err)
 		return
 	}
+
 	for i, v := range vacancies {
-		fmt.Printf("%d %+v\n", i, v)
+		fmt.Printf("%d. %s\n", i+1, v.Name)
+		fmt.Printf("    %s\n", v.Salary_range)
+		fmt.Printf("    Компания: %s\n", v.Employer.Name)
+		fmt.Printf("    Опыт: %s\n", v.Experience.Name)
+		var format []string
+		for _, f := range v.Work_format {
+			format = append(format, f.Name)
+		}
+		fmt.Printf("    Формат работы: %s\n", strings.Join(format, ", "))
+		fmt.Printf("    Откликнулось: %d / %d\n", v.Counters.Responses, v.Counters.Total_responses)
+		fmt.Printf("    Опубликовано: %s\n", v.Published_at.Format(time.DateOnly))
+		fmt.Printf("    Создано: %s\n", v.Created_at.Format(time.DateOnly))
+		fmt.Printf("    %s\n\n", v.Alternate_url)
 	}
 }

@@ -13,20 +13,34 @@ func ExtractItems[T dto.ResponseType](
 	endpoint apiendpoint.ApiEndpoint,
 	data dto.ResponseItems[T],
 ) ([]T, error) {
-	req, err := ac.CreateRequest("GET", endpoint.Url(), nil)
-	if err != nil {
-		return nil, err
-	}
+	var items []T
+	var totalPages int
 
-	req.URL.RawQuery = endpoint.Payload().Encode()
-	res, err := ac.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
+	for {
+		req, err := ac.CreateRequest("GET", endpoint.Url(), nil)
+		if err != nil {
+			return nil, err
+		}
 
-	if err := json.NewDecoder(res.Body).Decode(&data); err != nil {
-		return nil, err
+		req.URL.RawQuery = endpoint.Payload().Encode()
+		res, err := ac.httpClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		defer res.Body.Close()
+
+		if err := json.NewDecoder(res.Body).Decode(&data); err != nil {
+			return nil, err
+		}
+
+		items = append(items, data.Items...)
+		totalPages = data.Pages
+
+		if data.Page == totalPages {
+			break
+		} else {
+			endpoint.SetPage(data.Page + 1)
+		}
 	}
-	return data.Items, nil
+	return items, nil
 }

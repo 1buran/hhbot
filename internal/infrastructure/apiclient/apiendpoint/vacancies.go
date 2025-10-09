@@ -18,12 +18,14 @@ type getvacancies struct {
 	date_from, date_to      string
 	part_time               string
 	salary                  int
-	page, per_page          int
 	no_magic                bool // disable automatic conversion of original textual query to query params
 	only_with_salary        bool // show vacancies only with specified salary range, set to true
 	responses_count_enabled bool // include counters to response, set to true
+
+	Pagination
 }
 
+func (v *getvacancies) SetPage(p int)           { v.Pagination.Page = p }
 func (v getvacancies) Url(params ...any) string { return "/vacancies" }
 func (v getvacancies) Payload() url.Values {
 	payload := url.Values{}
@@ -68,11 +70,11 @@ func (v getvacancies) Payload() url.Values {
 	if v.salary > 0 {
 		payload.Add("salary", strconv.Itoa(v.salary))
 	}
-	if v.page > 0 {
-		payload.Add("page", strconv.Itoa(v.page))
+	if v.Pagination.Page > 0 {
+		payload.Add("page", strconv.Itoa(v.Pagination.Page))
 	}
-	if v.per_page > 0 {
-		payload.Add("per_page", strconv.Itoa(v.per_page))
+	if v.Pagination.PerPage > 0 {
+		payload.Add("per_page", strconv.Itoa(v.Pagination.PerPage))
 	}
 
 	if v.no_magic {
@@ -94,10 +96,12 @@ func NewGetVacancies(text string, salary int) ApiEndpoint {
 		only_with_salary:        true,
 		responses_count_enabled: true,
 		currency:                "RUR",
-		per_page:                20,
 
 		// query params:
 		text:   text,
 		salary: salary,
+
+		// pagination settings:
+		Pagination: Pagination{PerPage: 20},
 	}
 }

@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -8,6 +9,17 @@ type Salary struct {
 	Currency string
 	From, To int
 	Gross    bool
+}
+
+func (s Salary) String() string {
+	var from, to any = "-", "-"
+	if s.From > 0 {
+		from = s.From
+	}
+	if s.To > 0 {
+		from = s.To
+	}
+	return fmt.Sprintf("от: %v, до: %v %s", from, to, s.Currency)
 }
 
 type Counters struct{ Responses, Total_responses int }
