@@ -101,9 +101,9 @@ func (cfg *OAuthClient) callbackHandler(w http.ResponseWriter, r *http.Request) 
 
 	fmt.Fprintf(w, `<html>
 <head><title>Authorization Successful</title></head>
-<body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+<body style="font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: #060707;">
 	<h1 style="color: #4CAF50;">✓ Authorization successful!</h1>
-	<p>You can close this window and return to the terminal.</p>
+	<p style="color: #c9d6d9;">You can close this window and return to the terminal.</p>
 </body>
 </html>`)
 
