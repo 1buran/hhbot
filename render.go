@@ -69,13 +69,17 @@ func renderRelations(relations []string, dict dto.Dictionary) string {
 	return strings.Join(rel, ", ")
 }
 
-func renderVacancy(i int, v dto.Vacancy, dict dto.Dictionary) {
+func renderVacancy(i int, v dto.Vacancy, dict dto.Dictionary) string {
 	renderedRelations := renderRelations(v.Relations, dict)
 	experience := renderExperience(v.Experience)
 
-	fmt.Printf("%d. %s / %s\n", i+1, titleStyle.Render(v.Name),
-		salaryStyle.Render(v.Salary_range.String()))
-	fmt.Println(
+	var buf strings.Builder
+	title := titleStyle.Render(v.Name)
+	if v.Archived {
+		title += redflagStyle.Render(" ВНИМАНИЕ! Вакансия в архиве!")
+	}
+	fmt.Fprintf(&buf, "%d. %s / %s\n", i+1, title, salaryStyle.Render(v.Salary_range.String()))
+	fmt.Fprintln(&buf,
 		vacancyCard.Render(
 			fmt.Sprintf(
 				"Компания: %s\nОпыт: %s\nСвязь: %s\nФормат работы: %s\n"+
@@ -91,4 +95,5 @@ func renderVacancy(i int, v dto.Vacancy, dict dto.Dictionary) {
 			),
 		),
 	)
+	return buf.String()
 }
