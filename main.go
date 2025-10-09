@@ -38,6 +38,19 @@ func main() {
 	client := apiclient.NewApiClient(accessToken)
 
 	// Example: Search for vacancies
+	fmt.Println("Get dictionary...")
+	dict, err := client.GetDictionary()
+	if err != nil {
+		fmt.Println("client.GetDictionary failure:", err)
+		return
+	}
+
+	relations, ok := dict.Get("vacancy_relation")
+	if !ok {
+		fmt.Printf("Warning: vacancy_relation not found! dict: %+v\n", dict)
+	}
+	fmt.Printf("Виды связи: %+v\n", relations)
+
 	fmt.Println("\n=== Searching for vacancies ===")
 	vacancies, err := client.SearchVacancies("Golang developer", 350_000)
 	if err != nil {
@@ -50,11 +63,17 @@ func main() {
 		fmt.Printf("    %s\n", v.Salary_range)
 		fmt.Printf("    Компания: %s\n", v.Employer.Name)
 		fmt.Printf("    Опыт: %s\n", v.Experience.Name)
-		var format []string
-		for _, f := range v.Work_format {
-			format = append(format, f.Name)
+
+		var rel []string
+		for _, k := range v.Relations {
+			v := relations.Get(k)
+			if v != "" {
+				rel = append(rel, v)
+			}
 		}
-		fmt.Printf("    Формат работы: %s\n", strings.Join(format, ", "))
+
+		fmt.Printf("    Связь: %s\n", strings.Join(rel, ", "))
+		fmt.Printf("    Формат работы: %s\n", v.Work_format.String())
 		fmt.Printf("    Откликнулось: %d / %d\n", v.Counters.Responses, v.Counters.Total_responses)
 		fmt.Printf("    Опубликовано: %s\n", v.Published_at.Format(time.DateOnly))
 		fmt.Printf("    Создано: %s\n", v.Created_at.Format(time.DateOnly))

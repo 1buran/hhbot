@@ -7,7 +7,7 @@
 package dto
 
 type ResponseType interface {
-	Vacancy
+	Vacancy | Dictionary
 }
 
 type ResponseItems[T ResponseType] struct {

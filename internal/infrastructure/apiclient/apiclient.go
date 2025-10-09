@@ -43,6 +43,13 @@ func (ac ApiClient) SearchVacancies(text string, salary int) ([]dto.Vacancy, err
 	return ExtractItems(ac, vacanciesEndpoint, data)
 }
 
+// Get dictionary.
+func (ac ApiClient) GetDictionary() (dict dto.Dictionary, err error) {
+	dictionaryendpoint := apiendpoint.NewGetDictionary()
+	err = Get(ac, dictionaryendpoint, &dict)
+	return
+}
+
 // New Api Client.
 func NewApiClient(accessToken string) *ApiClient {
 	return &ApiClient{

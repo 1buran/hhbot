@@ -44,3 +44,28 @@ func ExtractItems[T dto.ResponseType](
 	}
 	return items, nil
 }
+
+// Generic Get request.
+func Get[T dto.ResponseType](
+	ac ApiClient,
+	endpoint apiendpoint.ApiEndpoint,
+	data *T,
+) error {
+	req, err := ac.CreateRequest("GET", endpoint.Url(), nil)
+	if err != nil {
+		return err
+	}
+
+	req.URL.RawQuery = endpoint.Payload().Encode()
+	res, err := ac.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if err := json.NewDecoder(res.Body).Decode(&data); err != nil {
+		return err
+	}
+
+	return nil
+}

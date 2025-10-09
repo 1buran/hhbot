@@ -42,16 +42,16 @@ type Vacancy struct {
 
 	Employer Employer
 
-	Professional_roles []DictionaryItem
+	Professional_roles DictionaryItems
 
 	Salary_range Salary
 
 	Type                  DictionaryItem
 	Employment_form       DictionaryItem
 	Experience            DictionaryItem
-	Work_format           []DictionaryItem
-	Work_schedule_by_days []DictionaryItem
-	Working_hours         []DictionaryItem
+	Work_format           DictionaryItems
+	Work_schedule_by_days DictionaryItems
+	Working_hours         DictionaryItems
 
 	Counters Counters
 
