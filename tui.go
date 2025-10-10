@@ -88,6 +88,7 @@ func goBack(m model) func() tea.Msg {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case Routing:
+		m.prev = m.view
 		m.view = msg.view
 	case tea.WindowSizeMsg:
 		m.w, m.h = msg.Width, msg.Height
@@ -132,9 +133,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case "esc":
-			if m.view == ErrorMessage || m.view == Information || m.view == VacancyContent {
-				return m, goBack(m)
-			}
+			return m, goBack(m)
 
 		// The "up" and "k" keys move the cursor up
 		case "up", "k":
@@ -176,7 +175,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			var skills string
 			if vac.Key_skills.Length() > 0 {
-				skills = fmt.Sprintf("**Skills**: %s\n", vac.Key_skills.String())
+				skills = fmt.Sprintf("**Skills**: %s\n\n", vac.Key_skills.String())
 			}
 
 			md, err := html2md.ConvertString(vac.Description)
