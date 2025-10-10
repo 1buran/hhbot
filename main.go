@@ -20,18 +20,33 @@ func main() {
 		log.Fatal("Please set HH_CLIENT_ID and HH_CLIENT_SECRET in .env file")
 	}
 
-	oauthClient := auth.NewOAuthClient(clientID, clientSecret)
+	var (
+		err         error
+		accessToken string
+	)
 
-	// Start OAuth flow
-	fmt.Println("=== HH.ru Vacancy Search Bot ===")
-	fmt.Println("Starting OAuth authentication...")
-
-	accessToken, err := oauthClient.Authenticate()
-	if err != nil {
-		log.Fatal("Authentication failed:", err)
+	if bytes, err := cacheLoad(".accesstoken"); err != nil {
+		fmt.Println("access token load from cache failure:", err.Error())
+	} else {
+		accessToken = string(bytes)
 	}
 
-	fmt.Println("\n✓ Authentication successful!")
+	if accessToken == "" {
+		oauthClient := auth.NewOAuthClient(clientID, clientSecret)
+
+		// Start OAuth flow
+		fmt.Println("Starting OAuth authentication...")
+
+		accessToken, err = oauthClient.Authenticate()
+		if err != nil {
+			log.Fatal("Authentication failed:", err)
+		}
+
+		fmt.Println(informationStyle.Render("\n✓ Authentication successful!"))
+		if err := cacheSave(".accesstoken", []byte(accessToken)); err != nil {
+			fmt.Println(redflagStyle.Render(err.Error()))
+		}
+	}
 
 	// Create API client
 	client := apiclient.NewApiClient(accessToken)

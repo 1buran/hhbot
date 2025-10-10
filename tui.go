@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 
 	html2md "github.com/JohannesKaufmann/html-to-markdown/v2"
@@ -9,9 +10,10 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/muesli/termenv"
 
+	"strings"
+
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/dto"
-	"strings"
 )
 
 const (
@@ -20,6 +22,7 @@ const (
 	ApplyToVacancy
 	ErrorMessage
 	Information
+	VacancySource
 )
 
 var (
@@ -55,7 +58,7 @@ func (m model) View() string {
 		return informationStyle.Render(m.msg)
 	case ErrorMessage:
 		return redflagStyle.Render(m.msg)
-	case VacancyContent:
+	case VacancyContent, VacancySource:
 		lines := len(m.content)
 		if lines <= m.h { // all content fits the one screen without scroll
 			return strings.Join(m.content, "\n")
@@ -142,7 +145,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.cursor > 0 {
 					m.cursor--
 				}
-			case VacancyContent:
+			case VacancyContent, VacancySource:
 				if m.scroll > 0 {
 					m.scroll--
 				}
@@ -155,11 +158,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.cursor < len(m.vacancies)-1 {
 					m.cursor++
 				}
-			case VacancyContent:
+			case VacancyContent, VacancySource:
 				if len(m.content)-m.scroll > m.h {
 					m.scroll++
 				}
 			}
+
 		// Enter to vacancy
 		case "enter", " ":
 			m.scroll = 0
@@ -172,6 +176,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.msg = fmt.Errorf("GetVacancy failure: %w", err).Error()
 				return m, nil
 			}
+
+			m.vacancies[m.cursor] = vac // update memory object with additional data
 
 			var skills string
 			if vac.Key_skills.Length() > 0 {
@@ -193,6 +199,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			m.view = VacancyContent
+			m.content = strings.Split(renderedContent, "\n")
+
+		case "s":
+			b, err := json.MarshalIndent(m.vacancies[m.cursor], "", "    ")
+			if err != nil {
+				m.view = ErrorMessage
+				m.msg = err.Error()
+			}
+			content := fmt.Sprintf("**Исходное содержание объекта вакансия:**\n\n ```json\n\n%s\n\n```", b)
+			renderedContent, err := glamourRenderer.Render(content)
+			if err != nil {
+				m.view = ErrorMessage
+				m.msg = fmt.Errorf("glamour.Render failure: %w", err).Error()
+				return m, nil
+			}
+
+			m.scroll = 0
+			m.view = VacancySource
+			m.prev = ListVacancies // m.contnet  will be overwritten so it is need to load vacancy again
 			m.content = strings.Split(renderedContent, "\n")
 		}
 	}
