@@ -179,6 +179,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			m.vacancies[m.cursor] = vac // update memory object with additional data
 
+			title := fmt.Sprintf("**%s** / `%s` / _%s_\n\n---\n\n",
+				vac.Name, vac.Salary_range.String(), vac.Employer.Name)
 			var skills string
 			if vac.Key_skills.Length() > 0 {
 				skills = fmt.Sprintf("**Skills**: %s\n\n", vac.Key_skills.String())
@@ -191,7 +193,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 
-			renderedContent, err := glamourRenderer.Render(skills + md)
+			renderedContent, err := glamourRenderer.Render(title + skills + md)
 			if err != nil {
 				m.view = ErrorMessage
 				m.msg = fmt.Errorf("glamour.Render failure: %w", err).Error()
