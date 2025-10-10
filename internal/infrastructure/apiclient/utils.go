@@ -2,6 +2,7 @@ package apiclient
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/apiendpoint"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/dto"
@@ -70,6 +71,17 @@ func Get[T dto.ResponseType](
 	return nil
 }
 
+type ErrorDetails struct {
+	Type  string
+	Value string
+}
+
+type BadRequestData struct {
+	Request_id  string
+	Description string
+	Errors      []ErrorDetails
+}
+
 // Generic POST request.
 func Post(
 	ac ApiClient,
@@ -88,5 +100,25 @@ func Post(
 	}
 	defer res.Body.Close()
 
-	return &dto.Response{Code: res.StatusCode, Status: res.Status, Headers: res.Header}, nil
+	var msg BadRequestData
+	if res.StatusCode >= 400 && res.Header.Get("Content-Type") == "application/json" {
+		if err := json.NewDecoder(res.Body).Decode(&msg); err != nil {
+			return nil, err
+		}
+	}
+
+	var errMsg string
+	if msg.Description != "" {
+		errMsg = fmt.Sprintf("Description: %s", msg.Description)
+	}
+	for _, e := range msg.Errors {
+		errMsg += fmt.Sprintf("\n%s: %s", e.Type, e.Value)
+	}
+
+	return &dto.Response{
+		Code:    res.StatusCode,
+		Status:  res.Status,
+		Headers: res.Header,
+		Error:   errMsg,
+	}, nil
 }

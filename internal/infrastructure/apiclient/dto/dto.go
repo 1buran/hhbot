@@ -21,4 +21,5 @@ type Response struct {
 	Code    int
 	Status  string
 	Headers http.Header
+	Error   string
 }

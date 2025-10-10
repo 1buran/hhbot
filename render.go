@@ -25,6 +25,8 @@ var (
 	salaryStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFD700"))
 	titleStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("#dddddd")).Bold(true)
 	companyStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("212")).Italic(true)
+
+	informationStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("47"))
 )
 
 func renderExperience(exp dto.DictionaryItem) (experience string) {
@@ -69,16 +71,24 @@ func renderRelations(relations []string, dict dto.Dictionary) string {
 	return strings.Join(rel, ", ")
 }
 
+func renderVacancyTitle(i int, v dto.Vacancy) string {
+	title := titleStyle.Render(v.Name)
+	if v.Archived {
+		title += redflagStyle.Render(" ВНИМАНИЕ! Вакансия в архиве!")
+	}
+	if v.Response_letter_required {
+		title += redflagStyle.Render(" ВНИМАНИЕ! Пройти опрос при отклике!")
+	}
+	return fmt.Sprintf("%d. %s / %s\n", i+1, title,
+		salaryStyle.Render(v.Salary_range.String()))
+}
+
 func renderVacancy(i int, v dto.Vacancy, dict dto.Dictionary) string {
 	renderedRelations := renderRelations(v.Relations, dict)
 	experience := renderExperience(v.Experience)
 
 	var buf strings.Builder
-	title := titleStyle.Render(v.Name)
-	if v.Archived {
-		title += redflagStyle.Render(" ВНИМАНИЕ! Вакансия в архиве!")
-	}
-	fmt.Fprintf(&buf, "%d. %s / %s\n", i+1, title, salaryStyle.Render(v.Salary_range.String()))
+	fmt.Fprintf(&buf, renderVacancyTitle(i, v))
 	fmt.Fprintln(&buf,
 		vacancyCard.Render(
 			fmt.Sprintf(

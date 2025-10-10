@@ -19,6 +19,7 @@ const (
 	VacancyContent
 	ApplyToVacancy
 	ErrorMessage
+	Information
 )
 
 var (
@@ -29,10 +30,11 @@ var (
 )
 
 type model struct {
-	vacancies []dto.Vacancy // load vacancies from hh.ru
-	cursor    int           // active vacancy
-	view      uint8         // alternate views
+	vacancies  []dto.Vacancy // load vacancies from hh.ru
+	cursor     int           // active vacancy
+	view, prev uint8         // alternate views
 
+	msg     string
 	content []string // splitted by lines for scroll
 	scroll  int      // vertical scroll position, beginning(first line) of visible content part
 	w, h    int      // weight and height of screen
@@ -48,8 +50,11 @@ func (m model) Init() tea.Cmd {
 
 func (m model) View() string {
 	switch m.view {
+	case Information:
+		// todo make it like a modal window
+		return informationStyle.Render(m.msg)
 	case ErrorMessage:
-		return redflagStyle.Render(m.content...)
+		return redflagStyle.Render(m.msg)
 	case VacancyContent:
 		lines := len(m.content)
 		if lines <= m.h { // all content fits the one screen without scroll
@@ -57,15 +62,33 @@ func (m model) View() string {
 		}
 		return strings.Join(m.content[m.scroll:m.scroll+m.h-1], "\n")
 	case ApplyToVacancy:
-		return DialogYesNo("Откликнуться на вакансию?")
+		v := m.vacancies[m.cursor]
+		return DialogYesNo("Откликнуться на вакансию?\n" +
+			renderVacancyTitle(m.cursor, v) + "\n" +
+			companyStyle.Render(v.Employer.Name),
+		)
 	}
 
 	// default: show list of vacancies
 	return renderVacancy(m.cursor, m.vacancies[m.cursor], m.hhdict)
 }
 
+// Route switch between screens.
+type Routing struct {
+	view uint8
+}
+
+// Go back to previous screen.
+func goBack(m model) func() tea.Msg {
+	return func() tea.Msg {
+		return Routing{view: m.prev}
+	}
+}
+
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case Routing:
+		m.view = msg.view
 	case tea.WindowSizeMsg:
 		m.w, m.h = msg.Width, msg.Height
 	case tea.KeyMsg:
@@ -78,15 +101,41 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, tea.Quit
 		case "a":
+			m.prev = m.view
 			m.view = ApplyToVacancy
 		case "n":
 			if m.view == ApplyToVacancy {
-				m.view = VacancyContent
+				return m, goBack(m)
 			}
 		case "y":
 			if m.view == ApplyToVacancy {
-				// todo add apply to vacancy
+				vacancyID := m.vacancies[m.cursor].Id
+				res, err := m.hhclient.Apply(vacancyID,
+					"b96ed6a4ff0f1ea45a0039ed1f3153446c5763", "Интересно!")
+				if err != nil {
+					m.view = ErrorMessage
+					m.msg = err.Error()
+					return m, nil
+				}
+				switch res.Code {
+				case 201:
+					return m, goBack(m)
+				case 303:
+					m.view = Information
+					m.msg = fmt.Sprintf("Перейдите на: %s", res.Headers.Get("Location"))
+				case 400, 403:
+					m.view = ErrorMessage
+					m.msg = res.Error
+				default:
+					m.view = ErrorMessage
+					m.msg = fmt.Sprintf("%+v", res)
+				}
 			}
+		case "esc":
+			if m.view == ErrorMessage || m.view == Information || m.view == VacancyContent {
+				return m, goBack(m)
+			}
+
 		// The "up" and "k" keys move the cursor up
 		case "up", "k":
 			switch m.view {
@@ -116,11 +165,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter", " ":
 			m.scroll = 0
 			m.content = []string{}
+			m.prev = m.view
 			vacancyID := m.vacancies[m.cursor].Id
 			vac, err := m.hhclient.GetVacancy(vacancyID)
 			if err != nil {
 				m.view = ErrorMessage
-				m.content = []string{fmt.Errorf("GetVacancy failure: %w", err).Error()}
+				m.msg = fmt.Errorf("GetVacancy failure: %w", err).Error()
 				return m, nil
 			}
 
@@ -132,14 +182,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			md, err := html2md.ConvertString(vac.Description)
 			if err != nil {
 				m.view = ErrorMessage
-				m.content = []string{fmt.Errorf("html2md.ConvertString failure: %w", err).Error()}
+				m.msg = fmt.Errorf("html2md.ConvertString failure: %w", err).Error()
 				return m, nil
 			}
 
 			renderedContent, err := glamourRenderer.Render(skills + md)
 			if err != nil {
 				m.view = ErrorMessage
-				m.content = []string{fmt.Errorf("glamour.Render failure: %w", err).Error()}
+				m.msg = fmt.Errorf("glamour.Render failure: %w", err).Error()
 				return m, nil
 			}
 
