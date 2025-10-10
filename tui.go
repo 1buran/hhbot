@@ -108,6 +108,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return fmt.Errorf("GetVacancy failure: %w", err)
 				}
 			}
+			var skills string
+			if vac.Key_skills.Length() > 0 {
+				skills = fmt.Sprintf("**Skills**: %s\n", vac.Key_skills.String())
+			}
+
 			md, err := html2md.ConvertString(vac.Description)
 			if err != nil {
 				m.content = []string{redflagStyle.Render(err.Error())}
@@ -116,7 +121,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 
-			renderedContent, err := glamourRenderer.Render(md)
+			renderedContent, err := glamourRenderer.Render(skills + md)
 			if err != nil {
 				m.content = []string{redflagStyle.Render(err.Error())}
 				return m, func() tea.Msg {

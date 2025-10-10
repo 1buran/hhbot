@@ -31,6 +31,18 @@ type Counters struct{ Responses, Total_responses int }
 type Snippet struct{ Requirement, Responsibility string }
 type Skill struct{ Name string }
 
+type Skills []Skill
+
+func (s Skills) String() string {
+	var tags []string
+	for _, v := range s {
+		tags = append(tags, v.Name)
+	}
+	return strings.Join(tags, ", ")
+}
+
+func (s Skills) Length() int { return len(s) }
+
 type Vacancy struct {
 	Id                  string
 	Name                string
@@ -42,7 +54,7 @@ type Vacancy struct {
 	Url                 string
 
 	Relations  []string // favorited, got_response, got_invitation, got_rejection, blacklisted
-	Key_skills []Skill
+	Key_skills Skills
 
 	// Do not forget enable json v2 for get new features like time format: GOEXPERIMENT=jsonv2
 	Created_at         time.Time `json:",format:'2006-01-02T15:04:05-0700'"`
