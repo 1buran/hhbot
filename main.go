@@ -58,7 +58,11 @@ func main() {
 	// 	fmt.Print(renderVacancy(i, v, dict))
 	// }
 
-	p := tea.NewProgram(initialModel(client, vacancies, dict))
+	p := tea.NewProgram(
+		initialModel(client, vacancies, dict),
+		tea.WithAltScreen(),
+		//		tea.WithMouseCellMotion(),
+	)
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
