@@ -2,11 +2,13 @@ package auth
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"os/exec"
 	"strings"
 )
 
@@ -148,6 +150,14 @@ func (cfg *OAuthClient) Authenticate() (string, error) {
 
 	fmt.Printf("\nPlease visit this URL to authorize the application:\n\n%s\n\n", authURL)
 	fmt.Println("Waiting for authorization...")
+
+	cmd := exec.Command("xdg-open", authURL)
+	if errors.Is(cmd.Err, exec.ErrDot) {
+		cmd.Err = nil
+	}
+	if err := cmd.Run(); err != nil {
+		log.Fatal(err)
+	}
 
 	// Wait for authorization code and state
 	code := <-cfg.authCodeChan
