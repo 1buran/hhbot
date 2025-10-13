@@ -43,6 +43,8 @@ type model struct {
 	scroll  int      // vertical scroll position, beginning(first line) of visible content part
 	w, h    int      // weight and height of screen
 
+	applyForm Form
+
 	hhdict   dto.Dictionary
 	hhclient *apiclient.ApiClient
 }
@@ -66,11 +68,7 @@ func (m model) View() string {
 		}
 		return strings.Join(m.content[m.scroll:m.scroll+m.h-1], "\n")
 	case ApplyToVacancy:
-		v := m.vacancies[m.cursor]
-		return DialogYesNo("Откликнуться на вакансию?\n" +
-			renderVacancyTitle(m.cursor, v) + "\n" +
-			companyStyle.Render(v.Employer.Name),
-		)
+		return m.applyForm.View()
 	}
 
 	// default: show list of vacancies
@@ -97,6 +95,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.w, m.h = msg.Width, msg.Height
 	case tea.KeyMsg:
+		// todo: refactoring exit from textarea focused input
+		// currently it is on escape
+		if m.applyForm != nil {
+			if m.applyForm.Focused() && msg.String() != "esc" {
+				break
+			}
+		}
+
 		switch msg.String() {
 		// These keys should exit the program.
 		case "ctrl+c", "q":
@@ -105,6 +111,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 			return m, tea.Quit
+		case "tab":
+			switch m.view {
+			case ApplyToVacancy:
+				return m, m.applyForm.Tab()
+			}
 		case "a":
 			// todo: refresh vacancy info before apply: data gathered from search
 			// is not full - a lot of fields are not filled, but will be filled on
@@ -117,6 +128,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.vacancies[m.cursor].Alternate_url)
 				return m, nil
 			}
+			v := m.vacancies[m.cursor]
+			m.applyForm = NewDialogYesNo("Откликнуться на вакансию?\n" +
+				renderVacancyTitle(m.cursor, v) + "\n" +
+				companyStyle.Render(v.Employer.Name),
+			)
 			m.prev = m.view
 			m.view = ApplyToVacancy
 		case "n":
@@ -127,7 +143,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.view == ApplyToVacancy {
 				vacancyID := m.vacancies[m.cursor].Id
 				res, err := m.hhclient.Apply(vacancyID,
-					"b96ed6a4ff0f1ea45a0039ed1f3153446c5763", "Интересно!")
+					"b96ed6a4ff0f1ea45a0039ed1f3153446c5763",
+					m.applyForm.Message(),
+				)
 				if err != nil {
 					m.view = ErrorMessage
 					m.msg = err.Error()
@@ -148,6 +166,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case "esc":
+			if m.applyForm != nil && m.applyForm.Focused() {
+				return m, m.applyForm.Tab()
+			}
 			return m, goBack(m)
 
 		// The "up" and "k" keys move the cursor up
@@ -236,7 +257,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	return m, nil
+	var cmds []tea.Cmd
+	if m.applyForm != nil {
+		cmds = append(cmds, m.applyForm.Update(msg))
+	}
+	return m, tea.Batch(cmds...)
 }
 
 func initialModel(
