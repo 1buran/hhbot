@@ -88,7 +88,7 @@ func renderVacancy(i int, v dto.Vacancy, dict dto.Dictionary) string {
 	experience := renderExperience(v.Experience)
 
 	var buf strings.Builder
-	fmt.Fprintf(&buf, renderVacancyTitle(i, v))
+	fmt.Fprint(&buf, renderVacancyTitle(i, v))
 	fmt.Fprintln(&buf,
 		vacancyCard.Render(
 			fmt.Sprintf(

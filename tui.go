@@ -29,6 +29,7 @@ const (
 var (
 	glamourRenderer, _ = glamour.NewTermRenderer(
 		glamour.WithStylePath("dracula"),
+		glamour.WithWordWrap(100),
 		glamour.WithColorProfile(termenv.TrueColor),
 	)
 )

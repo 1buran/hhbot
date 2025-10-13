@@ -6,6 +6,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+const (
+	formInnerWidth, formWidth = 90, 100
+)
+
 var (
 	buttonStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FFF7DB")).
@@ -25,6 +29,9 @@ var (
 			BorderLeft(true).
 			BorderRight(true).
 			BorderBottom(true)
+
+	textareaStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("189"))
 
 	subtle = lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#383838"}
 )
@@ -78,13 +85,12 @@ func (d dialogyesno) View() string {
 		cancelButton = activeButtonStyle.Render("No")
 	}
 
-	question := lipgloss.NewStyle().Width(50).Align(lipgloss.Center).Render(d.text)
+	question := lipgloss.NewStyle().Width(formInnerWidth).Align(lipgloss.Center).Render(d.text)
 	buttons := lipgloss.JoinHorizontal(lipgloss.Top, okButton, cancelButton)
-	ui := lipgloss.JoinVertical(lipgloss.Center, question, d.textarea.View(), buttons)
+	textarea := lipgloss.NewStyle().Margin(1).Render(d.textarea.View())
+	ui := lipgloss.JoinVertical(lipgloss.Center, question, textarea, buttons)
 
-	width := 80
-
-	return lipgloss.Place(width, 9,
+	return lipgloss.Place(formWidth, 9,
 		lipgloss.Center, lipgloss.Center,
 		dialogBoxStyle.Render(ui),
 		lipgloss.WithWhitespaceChars("░"),
@@ -95,9 +101,10 @@ func (d dialogyesno) View() string {
 func NewDialogYesNo(text string) Form {
 	ta := textarea.New()
 	ta.Placeholder = "Интересно!"
-	ta.SetWidth(80)
-	ta.SetHeight(10)
-	ta.FocusedStyle.CursorLine = lipgloss.NewStyle().Foreground(lipgloss.Color("147"))
+	ta.SetWidth(formWidth)
+	ta.SetHeight(5)
+	ta.FocusedStyle.Text = textareaStyle
+	ta.FocusedStyle.CursorLine = lipgloss.NewStyle()
 	ta.ShowLineNumbers = false
 	return &dialogyesno{text: text, elements: 3, textarea: ta} // todo: add text input (message)
 }
