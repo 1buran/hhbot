@@ -55,7 +55,7 @@ func (m model) Init() tea.Cmd {
 func (m model) View() string {
 	switch m.view {
 	case Information:
-		// todo make it like a modal window
+		// todo: make it like a modal window
 		return informationStyle.Render(m.msg)
 	case ErrorMessage:
 		return redflagStyle.Render(m.msg)
@@ -106,7 +106,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, tea.Quit
 		case "a":
-			// todo refresh vacancy info before apply: data gathered from search
+			// todo: refresh vacancy info before apply: data gathered from search
 			// is not full - a lot of fields are not filled, but will be filled on
 			// GET /vacancies/{id}
 			if m.vacancies[m.cursor].Test.Required {
