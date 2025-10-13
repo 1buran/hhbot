@@ -77,7 +77,7 @@ func renderVacancyTitle(i int, v dto.Vacancy) string {
 		title += redflagStyle.Render(" ВНИМАНИЕ! Вакансия в архиве!")
 	}
 	if v.Response_letter_required {
-		title += redflagStyle.Render(" ВНИМАНИЕ! Пройти опрос при отклике!")
+		title += redflagStyle.Render(" ВНИМАНИЕ! Требуется сопроводительное письмо при отклике!")
 	}
 	return fmt.Sprintf("%d. %s / %s\n", i+1, title,
 		salaryStyle.Render(v.Salary_range.String()))
