@@ -95,6 +95,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.w, m.h = msg.Width, msg.Height
 	case tea.KeyMsg:
+		// todo: add more robust, single place defined, key map actions
 		// todo: refactoring exit from textarea focused input
 		// currently it is on escape
 		if m.applyForm != nil {
