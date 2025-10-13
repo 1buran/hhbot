@@ -7,6 +7,7 @@ import (
 	html2md "github.com/JohannesKaufmann/html-to-markdown/v2"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
+	"github.com/charmbracelet/lipgloss"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/muesli/termenv"
 
@@ -129,7 +130,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.msg = fmt.Sprintf("Перейдите на: %s", res.Headers.Get("Location"))
 				case 400, 403:
 					m.view = ErrorMessage
-					m.msg = res.Error
+					m.msg = lipgloss.NewStyle().Width(60).Render(res.Error)
 				default:
 					m.view = ErrorMessage
 					m.msg = fmt.Sprintf("%+v", res)

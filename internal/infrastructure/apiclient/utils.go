@@ -3,6 +3,7 @@ package apiclient
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/apiendpoint"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/dto"
@@ -101,7 +102,8 @@ func Post(
 	defer res.Body.Close()
 
 	var msg BadRequestData
-	if res.StatusCode >= 400 && res.Header.Get("Content-Type") == "application/json" {
+	if res.StatusCode >= 400 && strings.Contains(
+		res.Header.Get("Content-Type"), "application/json") {
 		if err := json.NewDecoder(res.Body).Decode(&msg); err != nil {
 			return nil, err
 		}
