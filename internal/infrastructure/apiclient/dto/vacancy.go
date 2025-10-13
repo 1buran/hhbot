@@ -43,6 +43,11 @@ func (s Skills) String() string {
 
 func (s Skills) Length() int { return len(s) }
 
+type Test struct {
+	Id       string
+	Required bool
+}
+
 type Vacancy struct {
 	Id                  string
 	Name                string
@@ -66,6 +71,7 @@ type Vacancy struct {
 	Professional_roles DictionaryItems
 
 	Salary_range Salary
+	Test         Test
 
 	Type                  DictionaryItem
 	Employment_form       DictionaryItem

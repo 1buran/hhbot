@@ -106,6 +106,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, tea.Quit
 		case "a":
+			// todo refresh vacancy info before apply: data gathered from search
+			// is not full - a lot of fields are not filled, but will be filled on
+			// GET /vacancies/{id}
+			if m.vacancies[m.cursor].Test.Required {
+				m.view = ErrorMessage
+				m.msg = fmt.Sprintf("%s\n%s: %s",
+					"Необходимо пройти опрос/тест работодателя",
+					"переходите по ссылке и подавайтесь в ручную",
+					m.vacancies[m.cursor].Alternate_url)
+				return m, nil
+			}
 			m.prev = m.view
 			m.view = ApplyToVacancy
 		case "n":
