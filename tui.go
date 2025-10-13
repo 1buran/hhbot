@@ -212,7 +212,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 
-			m.vacancies[m.cursor] = vac // update memory object with additional data
+			// update memory object with additional data
+			m.vacancies[m.cursor].Description = vac.Description
+			m.vacancies[m.cursor].Key_skills = vac.Key_skills
+			m.vacancies[m.cursor].Initial_created_at = vac.Initial_created_at
+			m.vacancies[m.cursor].Professional_roles = vac.Professional_roles
+			m.vacancies[m.cursor].Work_format = vac.Work_format
+			m.vacancies[m.cursor].Snippet = vac.Snippet
+			m.vacancies[m.cursor].Approved = vac.Approved
 
 			title := fmt.Sprintf("**%s** / `%s` / _%s_\n\n---\n\n",
 				vac.Name, vac.Salary_range.String(), vac.Employer.Name)
