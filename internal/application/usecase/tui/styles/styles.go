@@ -20,4 +20,8 @@ var (
 	Company = lipgloss.NewStyle().Foreground(lipgloss.Color("212")).Italic(true)
 
 	Information = lipgloss.NewStyle().Width(60).Foreground(lipgloss.Color("47"))
+
+	Action       = lipgloss.NewStyle().Foreground(lipgloss.Color("51"))
+	ActionPrompt = lipgloss.NewStyle().Inherit(Action).SetString("⟩")
+	ActionInput  = lipgloss.NewStyle().Blink(true).Inherit(Action)
 )

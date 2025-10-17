@@ -30,6 +30,8 @@ func (m listvacanciesModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "enter":
 			return m, m.action(m.vacancies[m.cursor].Id)
+		case "ctrl+f":
+			return m, events.NewUserInput()
 		case "a":
 			v := m.vacancies[m.cursor]
 			return m, events.NewApply(m.cursor, v.Id, v.Name, v.Salary_range.String(),

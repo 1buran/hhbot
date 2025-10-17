@@ -24,6 +24,7 @@ type model struct {
 	activeView tea.Model
 
 	hhclient *apiclient.ApiClient
+	hhdict   dto.Dictionary
 	history  *views.History
 }
 
@@ -38,6 +39,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case events.Message:
 		m.history.Save(m.activeView)
 		m.activeView = msg
+	case events.NewSearch:
+		m.history.Save(m.activeView)
+		m.activeView = forms.NewInput(m.hhclient)
+	case events.SearchResults:
+		m.history.Save(m.activeView)
+		m.activeView = views.NewListVacancies(msg.Vacancies, m.hhdict, m.hhclient)
 	case events.Apply:
 		var formText strings.Builder
 		fmt.Fprint(&formText, "Откликнуться на вакансию?\n\n")
@@ -76,18 +83,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func InitialModel(
+	activeView tea.Model,
 	client *apiclient.ApiClient,
-	vacancies []dto.Vacancy,
 	dict dto.Dictionary,
 	resumeID string,
 ) model {
 	hist := views.NewHistory()
-	lv := views.NewListVacancies(vacancies, dict, client)
-	hist.Save(lv)
+	hist.Save(activeView)
 
 	return model{
 		hhclient:   client,
-		activeView: lv,
+		hhdict:     dict,
+		activeView: activeView,
 		history:    hist,
 		resumeID:   resumeID,
 	}

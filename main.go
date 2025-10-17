@@ -4,14 +4,17 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	_ "github.com/joho/godotenv/autoload"
 
 	"gitlab.com/1buran/hhbot/internal/application/usecase/tui"
+	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/forms"
 	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/styles"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/auth"
+	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/dto"
 )
 
 func main() {
@@ -60,31 +63,27 @@ func main() {
 	client := apiclient.NewApiClient(accessToken)
 
 	// Example: Search for vacancies
-	fmt.Println("Get dictionary...")
-	dict, err := client.GetDictionary()
-	if err != nil {
-		fmt.Println("client.GetDictionary failure:", err)
+	var dict dto.Dictionary
+	fmt.Println(styles.ActionPrompt.String(), styles.ActionInput.Render("Get dictionary..."))
+	if dict, err = client.GetDictionary(); err != nil {
+		fmt.Println(styles.Redflag.Render("client.GetDictionary failure:", err.Error()))
 		return
 	}
+	fmt.Println(styles.Information.Render("✓ hh.ru dictionary loaded successful"))
+	time.Sleep(500 * time.Millisecond)
 
-	fmt.Println("\n=== Searching for vacancies ===")
-	vacancies, err := client.SearchVacancies(
-		"NAME:(Golang OR Go NOT (devops OR Яндекс)) AND NOT COMPANY_NAME:(Яндекс OR Yandex)",
-		0)
-	if err != nil {
-		fmt.Println("client.SearchVacancies failure:", err)
-		return
-	}
-
-	// for i, v := range vacancies {
-	// 	if v.Archived {
-	// 		continue
-	// 	}
-	// 	fmt.Print(renderVacancy(i, v, dict))
+	// fmt.Println("\n=== Searching for vacancies ===")
+	// vacancies, err := client.SearchVacancies(
+	// 	"NAME:(Golang OR Go NOT (devops OR Яндекс)) AND NOT COMPANY_NAME:(Яндекс OR Yandex)",
+	// 	0)
+	// if err != nil {
+	// 	fmt.Println("client.SearchVacancies failure:", err)
+	// 	return
 	// }
+	// lv := views.NewListVacancies(vacancies, dict, client)
 
 	p := tea.NewProgram(
-		tui.InitialModel(client, vacancies, dict, resumeID),
+		tui.InitialModel(forms.NewInput(client), client, dict, resumeID),
 		tea.WithAltScreen(),
 		//		tea.WithMouseCellMotion(),
 	)
