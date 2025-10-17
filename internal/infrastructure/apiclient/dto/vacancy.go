@@ -4,6 +4,12 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"golang.org/x/text/message"
+)
+
+var (
+	printer = message.NewPrinter(message.MatchLanguage("ru"))
 )
 
 type Salary struct {
@@ -15,10 +21,10 @@ type Salary struct {
 func (s Salary) String() string {
 	var out []string
 	if s.From > 0 {
-		out = append(out, fmt.Sprintf("от %d", s.From))
+		out = append(out, fmt.Sprint("от ", printer.Sprint(s.From)))
 	}
 	if s.To > 0 {
-		out = append(out, fmt.Sprintf("до %d", s.To))
+		out = append(out, fmt.Sprint("до ", printer.Sprint(s.To)))
 	}
 	if len(out) > 0 {
 		out = append(out, s.Currency)
