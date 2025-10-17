@@ -1,10 +1,12 @@
 package views
 
 import (
+	"fmt"
+
 	tea "github.com/charmbracelet/bubbletea"
 
-	"fmt"
 	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/events"
+	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/styles"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/dto"
 )
@@ -21,7 +23,10 @@ type listvacanciesModel struct {
 func (m listvacanciesModel) Init() tea.Cmd { return nil }
 
 func (m listvacanciesModel) View() string {
-	return renderVacancy(m.cursor, m.vacancies[m.cursor], m.hhdict)
+	if len(m.vacancies) > 0 {
+		return renderVacancy(m.cursor, m.vacancies[m.cursor], m.hhdict)
+	}
+	return styles.Information.Render("Ничего не найдено! Повторите поиск!")
 }
 
 func (m listvacanciesModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

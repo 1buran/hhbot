@@ -33,6 +33,11 @@ func (m inputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
+		case "ctrl+r":
+			m.textinput.Reset()
+			m.textinput.Focus()
+			m.waitresults = false
+			return m, nil
 		case "enter":
 			m.textinput.Blur()
 			m.waitresults = true
@@ -54,6 +59,10 @@ func NewInput(client *apiclient.ApiClient) *inputModel {
 			vacancies, err := client.SearchVacancies(query, 0)
 			if err != nil {
 				return events.NewMessage(events.ErrorMessage, err.Error())
+			}
+			if len(vacancies) == 0 {
+				return events.NewMessage(events.Information,
+					"Ничего не найдено! Повторите поиск!")
 			}
 			return events.NewSearchResults(vacancies)
 		}
