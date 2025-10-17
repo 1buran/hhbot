@@ -1,31 +1,22 @@
 package views
 
-const (
-	ListVacancies = iota // views, screens with different content type
-	VacancyContent
-	ApplyToVacancy
-	VacancySource
-)
+import tea "github.com/charmbracelet/bubbletea"
 
-type RoutingState struct {
-	current, prev, home uint8
+type History struct {
+	views []tea.Model
 }
 
-func (d *RoutingState) Update(v uint8) {
-	d.prev = d.current
-	d.current = v
+func (d *History) Save(v tea.Model) {
+	if v != nil {
+		d.views = append(d.views, v)
+	}
 }
 
-func (d *RoutingState) Back() {
-	d.prev = d.home
-	d.current = d.prev
+func (d *History) Back() (v tea.Model) {
+	if len(d.views) > 0 {
+		v, d.views = d.views[len(d.views)-1], d.views[:len(d.views)-1]
+	}
+	return
 }
 
-func (d *RoutingState) Home() {
-	d.prev = d.current
-	d.current = d.home
-}
-
-func (d RoutingState) Current() uint8 { return d.current }
-
-func NewRoutingState() *RoutingState { return &RoutingState{} }
+func NewHistory() *History { return &History{} }
