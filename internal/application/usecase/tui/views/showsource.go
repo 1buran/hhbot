@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
-	"gitlab.com/1buran/hhbot/internal/application/usecase/events"
+	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/events"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/dto"
 )
 

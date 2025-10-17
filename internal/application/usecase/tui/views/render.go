@@ -6,28 +6,14 @@ import (
 	"time"
 
 	"github.com/charmbracelet/glamour"
-	"github.com/charmbracelet/lipgloss"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/muesli/termenv"
 
+	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/styles"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/dto"
 )
 
 var (
-	vacancyCard   = lipgloss.NewStyle().PaddingLeft(4)
-	redflagStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF6863"))
-	appliedStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#80EF80"))
-	invitedStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#00FF00"))
-	questionStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#00F0FF"))
-	favoriteStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF7518"))
-
-	blacklistedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFEF00"))
-	greenlightStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("121"))
-
-	salaryStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFD700"))
-	titleStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("#dddddd")).Bold(true)
-	CompanyStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("212")).Italic(true)
-
 	glamourRenderer, _ = glamour.NewTermRenderer(
 		glamour.WithStylePath("dracula"),
 		glamour.WithWordWrap(100),
@@ -38,9 +24,9 @@ var (
 func renderExperience(exp dto.DictionaryItem) (experience string) {
 	switch exp.Id {
 	case "moreThan6":
-		experience = redflagStyle.Render(exp.Name)
+		experience = styles.Redflag.Render(exp.Name)
 	case "between1And3", "noExperience":
-		experience = greenlightStyle.Render(exp.Name)
+		experience = styles.Greenlight.Render(exp.Name)
 	default:
 		experience = exp.Name
 	}
@@ -59,17 +45,17 @@ func renderRelations(relations []string, dict dto.Dictionary) string {
 		if v != "" {
 			switch k {
 			case "favorite":
-				v = favoriteStyle.Render(v)
+				v = styles.Favorite.Render(v)
 			case "got_response":
-				v = appliedStyle.Render(v)
+				v = styles.Applied.Render(v)
 			case "got_rejection":
-				v = redflagStyle.Render(v)
+				v = styles.Redflag.Render(v)
 			case "got_invitation":
-				v = invitedStyle.Render(v)
+				v = styles.Invited.Render(v)
 			case "blacklisted":
-				v = blacklistedStyle.Render(v)
+				v = styles.Blacklisted.Render(v)
 			case "got_question":
-				v = questionStyle.Render(v)
+				v = styles.Question.Render(v)
 			}
 			rel = append(rel, v)
 		}
@@ -78,15 +64,15 @@ func renderRelations(relations []string, dict dto.Dictionary) string {
 }
 
 func RenderVacancyTitle(i int, title, salary string, archived, respRequired bool) string {
-	title = titleStyle.Render(title)
+	title = styles.Title.Render(title)
 	if archived {
-		title += redflagStyle.Render(" ВНИМАНИЕ! Вакансия в архиве!")
+		title += styles.Redflag.Render(" ВНИМАНИЕ! Вакансия в архиве!")
 	}
 	if respRequired {
-		title += redflagStyle.Render(" ВНИМАНИЕ! Требуется сопроводительное письмо при отклике!")
+		title += styles.Redflag.Render(" ВНИМАНИЕ! Требуется сопроводительное письмо при отклике!")
 	}
 	return fmt.Sprintf("%d. %s / %s\n", i+1, title,
-		salaryStyle.Render(salary))
+		styles.Salary.Render(salary))
 }
 
 func renderVacancy(i int, v dto.Vacancy, dict dto.Dictionary) string {
@@ -96,11 +82,11 @@ func renderVacancy(i int, v dto.Vacancy, dict dto.Dictionary) string {
 	var buf strings.Builder
 	fmt.Fprint(&buf, RenderVacancyTitle(i, v.Name, v.Salary_range.String(), v.Archived, v.Response_letter_required))
 	fmt.Fprintln(&buf,
-		vacancyCard.Render(
+		styles.VacancyCard.Render(
 			fmt.Sprintf(
 				"Компания: %s\nОпыт: %s\nСвязь: %s\nФормат работы: %s\n"+
 					"Откликнулось: %d / %d\nОпубликовано: %s\nСоздано: %s\n%s\n\n",
-				CompanyStyle.Render(v.Employer.Name),
+				styles.Company.Render(v.Employer.Name),
 				experience,
 				renderedRelations,
 				v.Work_format.String(),

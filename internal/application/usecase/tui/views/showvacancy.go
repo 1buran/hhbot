@@ -7,7 +7,7 @@ import (
 	html2md "github.com/JohannesKaufmann/html-to-markdown/v2"
 	tea "github.com/charmbracelet/bubbletea"
 	_ "github.com/joho/godotenv/autoload"
-	"gitlab.com/1buran/hhbot/internal/application/usecase/events"
+	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/events"
 )
 
 type showvacancyModel struct {

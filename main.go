@@ -8,6 +8,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	_ "github.com/joho/godotenv/autoload"
 
+	"gitlab.com/1buran/hhbot/internal/application/usecase/tui"
+	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/styles"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/auth"
 )
@@ -42,9 +44,9 @@ func main() {
 			log.Fatal("Authentication failed:", err)
 		}
 
-		fmt.Println(informationStyle.Render("\n✓ Authentication successful!"))
+		fmt.Println(styles.Information.Render("\n✓ Authentication successful!"))
 		if err := cacheSave(".accesstoken", []byte(accessToken)); err != nil {
-			fmt.Println(redflagStyle.Render(err.Error()))
+			fmt.Println(styles.Redflag.Render(err.Error()))
 		}
 	}
 
@@ -76,7 +78,7 @@ func main() {
 	// }
 
 	p := tea.NewProgram(
-		initialModel(client, vacancies, dict),
+		tui.InitialModel(client, vacancies, dict),
 		tea.WithAltScreen(),
 		//		tea.WithMouseCellMotion(),
 	)

@@ -1,24 +1,19 @@
-package main
+package tui
 
 import (
 	"fmt"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+
 	_ "github.com/joho/godotenv/autoload"
 
-	"gitlab.com/1buran/hhbot/internal/application/usecase/events"
-	"gitlab.com/1buran/hhbot/internal/application/usecase/forms"
-	"gitlab.com/1buran/hhbot/internal/application/usecase/views"
+	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/events"
+	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/forms"
+	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/styles"
+	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/views"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/dto"
-)
-
-// todo: move styles to separate file
-var (
-	redflagStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF6863"))
-	informationStyle = lipgloss.NewStyle().Width(60).Foreground(lipgloss.Color("47"))
 )
 
 type model struct {
@@ -45,7 +40,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var formText strings.Builder
 		fmt.Fprint(&formText, "Откликнуться на вакансию?\n\n")
 		fmt.Fprintln(&formText, views.RenderVacancyTitle(msg.VacancyNumber, msg.Title, msg.Salary, msg.Archived, msg.ResponseRequired))
-		fmt.Fprintln(&formText, views.CompanyStyle.Render(msg.Employer))
+		fmt.Fprintln(&formText, styles.Company.Render(msg.Employer))
 
 		m.history.Save(m.activeView)
 		m.activeView = forms.NewApplyForm(msg.VacancyID, formText.String(), m.hhclient)
@@ -78,7 +73,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func initialModel(
+func InitialModel(
 	client *apiclient.ApiClient,
 	vacancies []dto.Vacancy,
 	dict dto.Dictionary,
