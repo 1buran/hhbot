@@ -73,13 +73,10 @@ func (m applyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func NewApplyForm(vacancyID, text string, client *apiclient.ApiClient) applyModel {
+func NewApplyForm(vacancyID, resumeID, text string, client *apiclient.ApiClient) applyModel {
 	action := func(message string) tea.Cmd {
 		return func() tea.Msg {
-			res, err := client.Apply(vacancyID,
-				"b96ed6a4ff0f1ea45a0039ed1f3153446c5763", // todo: remove hardcoded resume id
-				message,
-			)
+			res, err := client.Apply(vacancyID, resumeID, message)
 			if err != nil {
 				return events.NewMessage(events.ErrorMessage, err.Error())
 			}

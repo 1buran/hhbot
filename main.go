@@ -22,6 +22,12 @@ func main() {
 		log.Fatal("Please set HH_CLIENT_ID and HH_CLIENT_SECRET in .env file")
 	}
 
+	resumeID, ok := os.LookupEnv("RESUME_ID")
+	if !ok {
+		fmt.Println(styles.Redflag.Render("Not found env var: RESUME_ID"))
+		return
+	}
+
 	var (
 		err         error
 		accessToken string
@@ -78,7 +84,7 @@ func main() {
 	// }
 
 	p := tea.NewProgram(
-		tui.InitialModel(client, vacancies, dict),
+		tui.InitialModel(client, vacancies, dict, resumeID),
 		tea.WithAltScreen(),
 		//		tea.WithMouseCellMotion(),
 	)

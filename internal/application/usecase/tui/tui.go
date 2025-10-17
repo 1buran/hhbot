@@ -19,6 +19,8 @@ import (
 type model struct {
 	w, h int // weight and height of screen
 
+	resumeID string
+
 	activeView tea.Model
 
 	hhclient *apiclient.ApiClient
@@ -43,7 +45,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		fmt.Fprintln(&formText, styles.Company.Render(msg.Employer))
 
 		m.history.Save(m.activeView)
-		m.activeView = forms.NewApplyForm(msg.VacancyID, formText.String(), m.hhclient)
+		m.activeView = forms.NewApplyForm(msg.VacancyID, m.resumeID, formText.String(), m.hhclient)
 	case events.ShowVacancy:
 		var err error
 		m.history.Save(m.activeView)
@@ -77,6 +79,7 @@ func InitialModel(
 	client *apiclient.ApiClient,
 	vacancies []dto.Vacancy,
 	dict dto.Dictionary,
+	resumeID string,
 ) model {
 	hist := views.NewHistory()
 	lv := views.NewListVacancies(vacancies, dict, client)
@@ -86,5 +89,6 @@ func InitialModel(
 		hhclient:   client,
 		activeView: lv,
 		history:    hist,
+		resumeID:   resumeID,
 	}
 }
