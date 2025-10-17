@@ -1,12 +1,14 @@
-package main
+package views
 
 import (
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/muesli/termenv"
 
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/dto"
 )
@@ -24,9 +26,13 @@ var (
 
 	salaryStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFD700"))
 	titleStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("#dddddd")).Bold(true)
-	companyStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("212")).Italic(true)
+	CompanyStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("212")).Italic(true)
 
-	informationStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("47"))
+	glamourRenderer, _ = glamour.NewTermRenderer(
+		glamour.WithStylePath("dracula"),
+		glamour.WithWordWrap(100),
+		glamour.WithColorProfile(termenv.TrueColor),
+	)
 )
 
 func renderExperience(exp dto.DictionaryItem) (experience string) {
@@ -71,16 +77,16 @@ func renderRelations(relations []string, dict dto.Dictionary) string {
 	return strings.Join(rel, ", ")
 }
 
-func renderVacancyTitle(i int, v dto.Vacancy) string {
-	title := titleStyle.Render(v.Name)
-	if v.Archived {
+func RenderVacancyTitle(i int, title, salary string, archived, respRequired bool) string {
+	title = titleStyle.Render(title)
+	if archived {
 		title += redflagStyle.Render(" ВНИМАНИЕ! Вакансия в архиве!")
 	}
-	if v.Response_letter_required {
+	if respRequired {
 		title += redflagStyle.Render(" ВНИМАНИЕ! Требуется сопроводительное письмо при отклике!")
 	}
 	return fmt.Sprintf("%d. %s / %s\n", i+1, title,
-		salaryStyle.Render(v.Salary_range.String()))
+		salaryStyle.Render(salary))
 }
 
 func renderVacancy(i int, v dto.Vacancy, dict dto.Dictionary) string {
@@ -88,13 +94,13 @@ func renderVacancy(i int, v dto.Vacancy, dict dto.Dictionary) string {
 	experience := renderExperience(v.Experience)
 
 	var buf strings.Builder
-	fmt.Fprint(&buf, renderVacancyTitle(i, v))
+	fmt.Fprint(&buf, RenderVacancyTitle(i, v.Name, v.Salary_range.String(), v.Archived, v.Response_letter_required))
 	fmt.Fprintln(&buf,
 		vacancyCard.Render(
 			fmt.Sprintf(
 				"Компания: %s\nОпыт: %s\nСвязь: %s\nФормат работы: %s\n"+
 					"Откликнулось: %d / %d\nОпубликовано: %s\nСоздано: %s\n%s\n\n",
-				companyStyle.Render(v.Employer.Name),
+				CompanyStyle.Render(v.Employer.Name),
 				experience,
 				renderedRelations,
 				v.Work_format.String(),

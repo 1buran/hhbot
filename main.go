@@ -60,7 +60,9 @@ func main() {
 	}
 
 	fmt.Println("\n=== Searching for vacancies ===")
-	vacancies, err := client.SearchVacancies("Golang", 0)
+	vacancies, err := client.SearchVacancies(
+		"NAME:(Golang OR Go NOT (devops OR Яндекс)) AND NOT COMPANY_NAME:(Яндекс OR Yandex)",
+		0)
 	if err != nil {
 		fmt.Println("client.SearchVacancies failure:", err)
 		return
