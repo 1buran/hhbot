@@ -75,14 +75,20 @@ func RenderVacancyTitle(i int, title, salary string, archived, respRequired bool
 		styles.Salary.Render(salary))
 }
 
-func renderVacancy(i int, v dto.Vacancy, dict dto.Dictionary) string {
+func renderVacancy(i int, v dto.Vacancy, dict dto.Dictionary, blacklisted bool) string {
 	renderedRelations := renderRelations(v.Relations, dict)
 	experience := renderExperience(v.Experience)
 
 	var buf strings.Builder
 	fmt.Fprint(&buf, RenderVacancyTitle(i, v.Name, v.Salary_range.String(), v.Archived, v.Response_letter_required))
+
+	st := styles.VacancyCard
+	if blacklisted {
+		st = st.Faint(true)
+	}
+
 	fmt.Fprintln(&buf,
-		styles.VacancyCard.Render(
+		st.Render(
 			fmt.Sprintf(
 				"Компания: %s\nОпыт: %s\nСвязь: %s\nФормат работы: %s\n"+
 					"Откликнулось: %d / %d\nОпубликовано: %s\nСоздано: %s\n%s\n\n",

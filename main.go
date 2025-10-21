@@ -11,10 +11,12 @@ import (
 
 	"gitlab.com/1buran/hhbot/internal/application/usecase/tui"
 	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/forms"
+	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/state"
 	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/styles"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/auth"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/dto"
+	"gitlab.com/1buran/hhbot/internal/infrastructure/cache"
 )
 
 func main() {
@@ -32,14 +34,15 @@ func main() {
 	}
 
 	var (
-		err         error
-		accessToken string
+		err           error
+		accessToken   string
+		tokenResponse auth.TokenResponse
 	)
 
-	if bytes, err := cacheLoad(".accesstoken"); err != nil {
+	if err := cache.LoadToken(&tokenResponse); err != nil {
 		fmt.Println("access token load from cache failure:", err.Error())
 	} else {
-		accessToken = string(bytes)
+		accessToken = tokenResponse.AccessToken
 	}
 
 	if accessToken == "" {
@@ -48,13 +51,14 @@ func main() {
 		// Start OAuth flow
 		fmt.Println("Starting OAuth authentication...")
 
-		accessToken, err = oauthClient.Authenticate()
+		tokenResponse, err := oauthClient.Authenticate()
 		if err != nil {
 			log.Fatal("Authentication failed:", err)
 		}
+		accessToken = tokenResponse.AccessToken
 
 		fmt.Println(styles.Information.Render("\n✓ Authentication successful!"))
-		if err := cacheSave(".accesstoken", []byte(accessToken)); err != nil {
+		if err := cache.SaveToken(tokenResponse); err != nil {
 			fmt.Println(styles.Redflag.Render(err.Error()))
 		}
 	}
@@ -72,23 +76,45 @@ func main() {
 	fmt.Println(styles.Information.Render("✓ hh.ru dictionary loaded successful"))
 	time.Sleep(500 * time.Millisecond)
 
-	// fmt.Println("\n=== Searching for vacancies ===")
-	// vacancies, err := client.SearchVacancies(
-	// 	"NAME:(Golang OR Go NOT (devops OR Яндекс)) AND NOT COMPANY_NAME:(Яндекс OR Yandex)",
-	// 	0)
-	// if err != nil {
-	// 	fmt.Println("client.SearchVacancies failure:", err)
-	// 	return
-	// }
-	// lv := views.NewListVacancies(vacancies, dict, client)
+	sts := state.NewState()
+	var prevState state.State
+	if err := cache.LoadState(&prevState); err != nil {
+		// no previous state available, it's ok
+	} else {
+		sts.Init(&prevState)
+	}
+
+	ticker := time.NewTicker(time.Second)
+	done := make(chan struct{})
+	defer close(done)
+
+	go func() {
+		for {
+			select {
+			case <-done:
+				return
+			case <-ticker.C:
+				if sts.IsDirty() {
+					if err := cache.SaveState(sts.ExportState()); err != nil {
+						tea.Println(styles.Redflag.Render(err.Error()))
+					} else {
+						sts.SetClean()
+					}
+				}
+			}
+		}
+	}()
 
 	p := tea.NewProgram(
-		tui.InitialModel(forms.NewInput(client), client, dict, resumeID),
+		tui.InitialModel(forms.NewInput(client), client, sts, dict, resumeID),
 		tea.WithAltScreen(),
 		//		tea.WithMouseCellMotion(),
 	)
+
 	if _, err := p.Run(); err != nil {
-		fmt.Printf("Alas, there's been an error: %v", err)
+		fmt.Printf("Run program failure: %v", err)
+		done <- struct{}{}
 		os.Exit(1)
 	}
+	done <- struct{}{}
 }

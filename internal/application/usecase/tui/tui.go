@@ -8,8 +8,10 @@ import (
 
 	_ "github.com/joho/godotenv/autoload"
 
+	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/actions"
 	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/events"
 	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/forms"
+	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/state"
 	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/styles"
 	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/views"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient"
@@ -26,6 +28,7 @@ type model struct {
 	hhclient *apiclient.ApiClient
 	hhdict   dto.Dictionary
 	history  *views.History
+	state    *state.Facade
 }
 
 func (m model) Init() tea.Cmd { return nil }
@@ -36,6 +39,24 @@ func (m model) View() string {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case actions.Blacklisted:
+		if msg.CompanyID != "" {
+			m.state.BlacklistCompany(msg.CompanyID, state.NewNote(
+				"Компания добавлена в чёрный список"))
+		}
+		if msg.VacancyID != "" {
+			m.state.BlacklistVacancy(msg.VacancyID, state.NewNote(
+				"Вакансия добавлена в чёрный список"))
+		}
+	case actions.Unblacklisted:
+		if msg.CompanyID != "" {
+			m.state.UnblacklistCompany(msg.CompanyID, state.NewNote(
+				"Компания удалена из чёрного спискa"))
+		}
+		if msg.VacancyID != "" {
+			m.state.UnblacklistVacancy(msg.VacancyID, state.NewNote(
+				"Вакансия удалена из чёрного списка"))
+		}
 	case events.Message:
 		m.history.Save(m.activeView)
 		m.activeView = msg
@@ -44,7 +65,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.activeView = forms.NewInput(m.hhclient)
 	case events.SearchResults:
 		m.history.Save(m.activeView)
-		m.activeView = views.NewListVacancies(msg.Vacancies, m.hhdict, m.hhclient)
+		m.activeView = views.NewListVacancies(msg.Vacancies, m.hhdict, m.hhclient, m.state)
 	case events.Apply:
 		var formText strings.Builder
 		fmt.Fprint(&formText, "Откликнуться на вакансию?\n\n")
@@ -85,6 +106,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func InitialModel(
 	activeView tea.Model,
 	client *apiclient.ApiClient,
+	state *state.Facade,
 	dict dto.Dictionary,
 	resumeID string,
 ) model {
@@ -96,6 +118,7 @@ func InitialModel(
 		hhdict:     dict,
 		activeView: activeView,
 		history:    hist,
+		state:      state,
 		resumeID:   resumeID,
 	}
 }

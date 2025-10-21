@@ -5,7 +5,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
+	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/actions"
 	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/events"
+	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/state"
 	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/styles"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/dto"
@@ -18,13 +20,17 @@ type listvacanciesModel struct {
 	cursor, scroll, w, h int
 
 	hhdict dto.Dictionary
+	state  *state.Facade
 }
 
 func (m listvacanciesModel) Init() tea.Cmd { return nil }
 
 func (m listvacanciesModel) View() string {
 	if len(m.vacancies) > 0 {
-		return renderVacancy(m.cursor, m.vacancies[m.cursor], m.hhdict)
+		v := m.vacancies[m.cursor]
+		_, vb := m.state.IsVacancyBlacklisted(v.Id)
+		_, cb := m.state.IsCompanyBlacklisted(v.Employer.Id)
+		return renderVacancy(m.cursor, v, m.hhdict, vb || cb)
 	}
 	return styles.Information.Render("Ничего не найдено! Повторите поиск!")
 }
@@ -37,6 +43,14 @@ func (m listvacanciesModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, m.action(m.vacancies[m.cursor].Id)
 		case "ctrl+f":
 			return m, events.NewUserInput()
+		case "b":
+			return m, actions.NewBlacklisted(m.vacancies[m.cursor].Id, "", "поблэклистили")
+		case "B":
+			return m, actions.NewBlacklisted("", m.vacancies[m.cursor].Employer.Id, "поблэклистили")
+		case "u":
+			return m, actions.NewUnblacklisted(m.vacancies[m.cursor].Id, "", "разблокировали")
+		case "U":
+			return m, actions.NewUnblacklisted("", m.vacancies[m.cursor].Employer.Id, "разблокировали")
 		case "a":
 			v := m.vacancies[m.cursor]
 			return m, events.NewApply(m.cursor, v.Id, v.Name, v.Salary_range.String(),
@@ -59,7 +73,8 @@ func (m listvacanciesModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func NewListVacancies(
-	vacancies []dto.Vacancy, dict dto.Dictionary, client *apiclient.ApiClient,
+	vacancies []dto.Vacancy, dict dto.Dictionary,
+	client *apiclient.ApiClient, state *state.Facade,
 ) *listvacanciesModel {
 	action := func(vacancyID string) tea.Cmd {
 		return func() tea.Msg {
@@ -74,5 +89,5 @@ func NewListVacancies(
 		}
 	}
 
-	return &listvacanciesModel{vacancies: vacancies, hhdict: dict, action: action}
+	return &listvacanciesModel{vacancies: vacancies, hhdict: dict, action: action, state: state}
 }

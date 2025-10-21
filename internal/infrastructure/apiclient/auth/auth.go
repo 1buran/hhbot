@@ -134,11 +134,11 @@ func (cfg *OAuthClient) StopListeningCallback() {
 }
 
 // Authentification progress.
-func (cfg *OAuthClient) Authenticate() (string, error) {
+func (cfg *OAuthClient) Authenticate() (*TokenResponse, error) {
 	// Generate state for CSRF protection
 	state, err := GenerateState()
 	if err != nil {
-		return "", fmt.Errorf("failed to generate state: %w", err)
+		return nil, fmt.Errorf("failed to generate state: %w", err)
 	}
 	expectedState := state
 
@@ -165,16 +165,16 @@ func (cfg *OAuthClient) Authenticate() (string, error) {
 
 	// Verify state to prevent CSRF attacks
 	if receivedState != expectedState {
-		return "", fmt.Errorf("state mismatch: possible CSRF attack")
+		return nil, fmt.Errorf("state mismatch: possible CSRF attack")
 	}
 
 	// Exchange code for token
 	token, err := cfg.ExchangeCode(code, state)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return token.AccessToken, nil
+	return token, nil
 }
 
 func NewOAuthClient(clientId, clientSecret string) *OAuthClient {
