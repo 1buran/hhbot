@@ -81,7 +81,8 @@ func NewListVacancies(
 			vac, err := client.GetVacancy(vacancyID)
 			if err != nil {
 				return events.NewMessage(events.ErrorMessage,
-					fmt.Errorf("Get vacancy failure: %w", err).Error())
+					fmt.Errorf("Get vacancy failure: %w", err).Error(),
+					"Ошибка просмотра вакансии")
 			}
 			return events.NewShowVacancy(vac.Name, vac.Salary_range.String(),
 				vac.Key_skills.String(), vac.Description, vac.Employer.Name,

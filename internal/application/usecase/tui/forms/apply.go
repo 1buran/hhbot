@@ -46,7 +46,6 @@ func (m applyModel) View() string {
 		lipgloss.WithWhitespaceChars("░"),
 		lipgloss.WithWhitespaceForeground(subtle),
 	)
-
 }
 
 func (m applyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -78,18 +77,22 @@ func NewApplyForm(vacancyID, resumeID, text string, client *apiclient.ApiClient)
 		return func() tea.Msg {
 			res, err := client.Apply(vacancyID, resumeID, message)
 			if err != nil {
-				return events.NewMessage(events.ErrorMessage, err.Error())
+				return events.NewMessage(events.ErrorMessage, err.Error(),
+					"Ошибка при подаче на вакансию")
 			}
 			switch res.Code {
 			case 201:
 				return events.Quit()
 			case 303:
 				return events.NewMessage(events.Information,
-					fmt.Sprintf("Перейдите на: %s", res.Headers.Get("Location")))
+					fmt.Sprintf("Перейдите на: %s", res.Headers.Get("Location")),
+					"Информация")
 			case 400, 403:
-				return events.NewMessage(events.ErrorMessage, res.Error)
+				return events.NewMessage(events.ErrorMessage, res.Error,
+					"Ошибка при подаче на вакансию")
 			}
-			return events.NewMessage(events.ErrorMessage, fmt.Sprintf("%+v", res))
+			return events.NewMessage(events.ErrorMessage, fmt.Sprintf("%+v", res),
+				"Ошибка при подаче на вакансию")
 		}
 	}
 

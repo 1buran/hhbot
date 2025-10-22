@@ -1,6 +1,7 @@
 package apiendpoint
 
 type Pagination struct {
-	Page    int `json:"page"`
-	PerPage int `json:"per_page"`
+	Page    int
+	PerPage int
+	Found   int
 }

@@ -27,6 +27,7 @@ func main() {
 		log.Fatal("Please set HH_CLIENT_ID and HH_CLIENT_SECRET in .env file")
 	}
 
+	// todo: move that to dialog: get applicant resumes from hh.ru, save them and choose default
 	resumeID, ok := os.LookupEnv("RESUME_ID")
 	if !ok {
 		fmt.Println(styles.Redflag.Render("Not found env var: RESUME_ID"))
@@ -88,6 +89,8 @@ func main() {
 	done := make(chan struct{})
 	defer close(done)
 
+	// Run background job for update the cache of state until end of program,
+	// every 1 seconds it checks the status of state and save it on hard drive if needed.
 	go func() {
 		for {
 			select {

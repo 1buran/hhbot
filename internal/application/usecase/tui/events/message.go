@@ -16,9 +16,12 @@ var (
 )
 
 type Message struct {
-	lvl int
-	txt string
+	lvl         int
+	txt, status string
 }
+
+func (m Message) Level() int     { return m.lvl }
+func (m Message) Status() string { return m.status }
 
 func (m Message) Init() tea.Cmd { return nil }
 
@@ -43,4 +46,6 @@ func (m Message) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func NewMessage(level int, text string) Message { return Message{lvl: level, txt: text} }
+func NewMessage(level int, text, status string) Message {
+	return Message{lvl: level, txt: text, status: status}
+}

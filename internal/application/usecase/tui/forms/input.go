@@ -11,21 +11,13 @@ import (
 )
 
 type inputModel struct {
-	textinput   textinput.Model
-	waitresults bool
-	elapsed     int
-	action      func(input string) tea.Cmd
+	textinput textinput.Model
+	action    func(input string) tea.Cmd
 }
 
 func (m inputModel) Init() tea.Cmd { return m.textinput.Focus() }
 
-func (m inputModel) View() string {
-	s := m.textinput.View()
-	if m.waitresults {
-		s += "\n\n" + " Waiting response from hh.ru API..."
-	}
-	return s
-}
+func (m inputModel) View() string { return m.textinput.View() }
 
 func (m inputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
@@ -36,12 +28,12 @@ func (m inputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+r":
 			m.textinput.Reset()
 			m.textinput.Focus()
-			m.waitresults = false
 			return m, nil
 		case "enter":
 			m.textinput.Blur()
-			m.waitresults = true
-			return m, m.action(m.textinput.Value())
+			return m, tea.Batch(m.action(m.textinput.Value()),
+				events.NewStatusBarNotifyCmd("Ожидаем ответа от hh.ru...",
+					events.StatusBarNotifyLevelWarning))
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		}
@@ -58,11 +50,12 @@ func NewInput(client *apiclient.ApiClient) *inputModel {
 		return func() tea.Msg {
 			vacancies, err := client.SearchVacancies(query, 0)
 			if err != nil {
-				return events.NewMessage(events.ErrorMessage, err.Error())
+				return events.NewMessage(events.ErrorMessage, err.Error(),
+					"Ошибка поиска вакансий")
 			}
 			if len(vacancies) == 0 {
 				return events.NewMessage(events.Information,
-					"Ничего не найдено! Повторите поиск!")
+					"Ничего не найдено! Повторите поиск!", "Инофрмация")
 			}
 			return events.NewSearchResults(vacancies)
 		}
