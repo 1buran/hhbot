@@ -13,6 +13,7 @@ import (
 	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/forms"
 	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/state"
 	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/styles"
+	"gitlab.com/1buran/hhbot/internal/application/usecase/tui/views"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/auth"
 	"gitlab.com/1buran/hhbot/internal/infrastructure/apiclient/dto"
@@ -25,13 +26,6 @@ func main() {
 
 	if clientID == "" || clientSecret == "" {
 		log.Fatal("Please set HH_CLIENT_ID and HH_CLIENT_SECRET in .env file")
-	}
-
-	// todo: move that to dialog: get applicant resumes from hh.ru, save them and choose default
-	resumeID, ok := os.LookupEnv("RESUME_ID")
-	if !ok {
-		fmt.Println(styles.Redflag.Render("Not found env var: RESUME_ID"))
-		return
 	}
 
 	var (
@@ -108,8 +102,15 @@ func main() {
 		}
 	}()
 
+	var startView tea.Model
+	if sts.ResumeID() == "" {
+		startView = views.NewListResumes(client, sts)
+	} else {
+		startView = forms.NewInput(client)
+	}
+
 	p := tea.NewProgram(
-		tui.InitialModel(forms.NewInput(client), client, sts, dict, resumeID),
+		tui.InitialModel(startView, client, sts, dict),
 		tea.WithAltScreen(),
 		//		tea.WithMouseCellMotion(),
 	)

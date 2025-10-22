@@ -22,6 +22,9 @@ type State struct {
 	CompanyNotes map[string][]Note
 
 	Vacancies map[string]dto.Vacancy
+
+	Resumes  []dto.Resume
+	ResumeID string // used in apply to vacancy
 }
 
 // Facade hides a state, all state mutations should be trough facade.
@@ -31,6 +34,7 @@ type Facade struct {
 }
 
 func (f Facade) ExportState() *State { return f.state }
+func (f Facade) ResumeID() string    { return f.state.ResumeID }
 
 func (f Facade) IsCompanyBlacklisted(companyID string) (*Note, bool) {
 	meta, ok := f.state.BlacklistedCompany[companyID]
@@ -60,6 +64,11 @@ func (f *Facade) UnblacklistCompany(companyID string, note Note) {
 func (f *Facade) UnblacklistVacancy(vacancyID string, note Note) {
 	f.dirty = true
 	delete(f.state.BlacklistedVacancy, vacancyID)
+}
+
+func (f *Facade) SetDefaultResume(resumeID string) {
+	f.dirty = true
+	f.state.ResumeID = resumeID
 }
 
 func (f *Facade) Init(state *State) { f.state = state }

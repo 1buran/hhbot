@@ -63,6 +63,13 @@ func (ac ApiClient) GetVacancy(vacancyID string) (vac dto.Vacancy, err error) {
 	return
 }
 
+// Get resumes.
+func (ac ApiClient) GetResumes() ([]dto.Resume, error) {
+	var data dto.ResponseItems[dto.Resume]
+	getresumesendpoint := apiendpoint.NewGetResumesMine()
+	return ExtractItems(ac, getresumesendpoint, data)
+}
+
 // New Api Client.
 func NewApiClient(accessToken string) *ApiClient {
 	return &ApiClient{

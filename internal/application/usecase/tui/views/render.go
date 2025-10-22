@@ -105,3 +105,7 @@ func renderVacancy(i int, v dto.Vacancy, dict dto.Dictionary, blacklisted bool) 
 	)
 	return buf.String()
 }
+
+func renderResume(r dto.Resume) string {
+	return fmt.Sprintf("%s / %s", r.Title, r.Salary.String())
+}

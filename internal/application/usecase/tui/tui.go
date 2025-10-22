@@ -22,8 +22,6 @@ import (
 type model struct {
 	w, h int // weight and height of screen
 
-	resumeID string
-
 	activeView tea.Model
 	statusbar  tea.Model
 
@@ -34,7 +32,7 @@ type model struct {
 	history *views.History
 }
 
-func (m model) Init() tea.Cmd { return nil }
+func (m model) Init() tea.Cmd { return m.activeView.Init() }
 
 func (m model) View() string {
 	return lipgloss.JoinVertical(lipgloss.Top, m.activeView.View(), "", m.statusbar.View())
@@ -90,7 +88,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		fmt.Fprintln(&formText, styles.Company.Render(msg.Employer))
 
 		m.history.Save(m.activeView, m.statusbar)
-		m.activeView = forms.NewApplyForm(msg.VacancyID, m.resumeID, formText.String(), m.hhclient)
+		m.activeView = forms.NewApplyForm(msg.VacancyID, m.state.ResumeID(), formText.String(), m.hhclient)
 	case events.ShowVacancy:
 		var err error
 		m.history.Save(m.activeView, m.statusbar)
@@ -116,6 +114,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if len(views) == 2 {
 			m.activeView, m.statusbar = views[0], views[1]
 		}
+	case events.QuitFromResumeLoader:
+		m.activeView = forms.NewInput(m.hhclient)
+		m.statusbar = views.NewStatusBar()
 	case tea.WindowSizeMsg:
 		m.w, m.h = msg.Width, msg.Height
 	}
@@ -130,7 +131,6 @@ func InitialModel(
 	client *apiclient.ApiClient,
 	state *state.Facade,
 	dict dto.Dictionary,
-	resumeID string,
 ) model {
 	hist := views.NewHistory()
 	hist.Save(activeView)
@@ -143,6 +143,5 @@ func InitialModel(
 		statusbar:  sbar,
 		history:    hist,
 		state:      state,
-		resumeID:   resumeID,
 	}
 }

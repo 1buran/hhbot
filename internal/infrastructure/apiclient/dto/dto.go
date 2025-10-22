@@ -9,7 +9,7 @@ package dto
 import "net/http"
 
 type ResponseType interface {
-	Vacancy | Dictionary
+	Vacancy | Dictionary | Resume
 }
 
 type ResponseItems[T ResponseType] struct {
