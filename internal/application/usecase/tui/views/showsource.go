@@ -11,8 +11,8 @@ import (
 )
 
 type sourceModel struct {
-	content              []string
-	cursor, scroll, w, h int
+	content      []string
+	scroll, w, h int
 }
 
 func (m sourceModel) Init() tea.Cmd { return nil }

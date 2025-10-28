@@ -11,8 +11,8 @@ import (
 )
 
 type showvacancyModel struct {
-	content              []string
-	cursor, scroll, w, h int
+	content      []string
+	scroll, w, h int
 }
 
 func (m showvacancyModel) Init() tea.Cmd { return nil }

@@ -96,7 +96,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			msg.Name, msg.Salary, msg.Skills, msg.WorkFormat, msg.Desc, msg.Employer, m.w, m.h,
 		); err != nil {
 			m.activeView = events.NewMessage(events.ErrorMessage,
-				fmt.Errorf("Show vacancy failure: %w", err).Error(),
+				fmt.Errorf("show vacancy failure: %w", err).Error(),
 				"Ошибка просмотра вакансии")
 			return m, nil
 		}
@@ -105,7 +105,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.history.Save(m.activeView, m.statusbar)
 		if m.activeView, err = views.NewSource(msg.Vacancy, m.w, m.h); err != nil {
 			m.activeView = events.NewMessage(events.ErrorMessage,
-				fmt.Errorf("Show source(JSON) of vacancy data failure: %w", err).Error(),
+				fmt.Errorf("show source(JSON) of vacancy data failure: %w", err).Error(),
 				"Ошибка просмотра исходного JSON")
 			return m, nil
 		}

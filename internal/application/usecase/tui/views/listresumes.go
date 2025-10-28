@@ -12,8 +12,8 @@ import (
 )
 
 type listresumesModel struct {
-	resumes              []dto.Resume
-	cursor, scroll, w, h int
+	resumes []dto.Resume
+	cursor  int
 
 	state       *state.Facade
 	loadResumes func() ([]dto.Resume, error)
@@ -26,7 +26,7 @@ func (m listresumesModel) Init() tea.Cmd {
 		resumes, err := m.loadResumes()
 		if err != nil {
 			return events.NewMessage(events.ErrorMessage,
-				fmt.Errorf("Get resumes failure: %w", err).Error(),
+				fmt.Errorf("get resumes failure: %w", err).Error(),
 				"Ошибка загрузки резюме")
 		}
 		return events.NewResumesLoaded(resumes)

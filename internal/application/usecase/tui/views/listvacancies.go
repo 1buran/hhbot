@@ -16,8 +16,8 @@ import (
 type listvacanciesModel struct {
 	action func(vacancyID string) tea.Cmd
 
-	vacancies            []dto.Vacancy
-	cursor, scroll, w, h int
+	vacancies []dto.Vacancy
+	cursor    int
 
 	hhdict dto.Dictionary
 	state  *state.Facade
@@ -81,7 +81,7 @@ func NewListVacancies(
 			vac, err := client.GetVacancy(vacancyID)
 			if err != nil {
 				return events.NewMessage(events.ErrorMessage,
-					fmt.Errorf("Get vacancy failure: %w", err).Error(),
+					fmt.Errorf("get vacancy failure: %w", err).Error(),
 					"Ошибка просмотра вакансии")
 			}
 			return events.NewShowVacancy(vac.Name, vac.Salary_range.String(),
